@@ -71,7 +71,7 @@ We discuss how to extend the Unicity infrastructure for using predicates as abst
 
 \section{Introduction}
 
-Predicates generalize the concepts of token ownership and transfer in the Unicity infrastructure, which in 
+Predicates generalize the concepts of token ownership and transfer in the Unicity infrastructure, which in
 the paper \cite{BTLR25}
 were defined via digital signatures as follows:
 \begin{itemize}
@@ -107,33 +107,33 @@ $(\systime_1,m_1,\sigma_1),\ldots,(\systime_n,m_n,\sigma_n)$ (so that $\predi(\s
 Therefore, the precise mathematical formulation of the no-blocking condition -- \emph{only the owner of the private key of $\pubkey$ can block the state $S=(\pubkey,\sthash)$} -- must be revisited. We will redefine the no-blocking condition as follows -- \emph{only those who can solve the predicate $\predi$ can block the state $S=(\predi,\sthash)$}, where by solving $\predi$ we mean finding, for a given $m$, a pair $(\systime,\sigma)$ so that $\predi(\systime,m,\sigma)=1$.
 We will make this security definition precise and prove that it holds in the Unicity infrastructure. Intuitively, this means that undesired blocking can happen only because of the weakness of the user-chosen predicates and never because of the structural weakness of the Unicity infrastructure itself.
 
-The paper is organized as follows. In Section~\ref{sec:predicates} we define the predicates and give some examples. In Section~\ref{sec:infra}, 
-we show how to extend the Unicity Infrastructure with predicates. 
-In Section~\ref{sec:security}, we prove that using predicates will not affect the security properties of the Unicity infrastructure. In Section~\ref{sec:swap}, we discuss how to implement trustless atomic swaps by using predicates. 
+The paper is organized as follows. In Section~\ref{sec:predicates} we define the predicates and give some examples. In Section~\ref{sec:infra},
+we show how to extend the Unicity Infrastructure with predicates.
+In Section~\ref{sec:security}, we prove that using predicates will not affect the security properties of the Unicity infrastructure. In Section~\ref{sec:swap}, we discuss how to implement trustless atomic swaps by using predicates.
 
 
 
 \section{Predicates}\label{sec:predicates}
 
 In mathematics, a \emph{predicate} $\nu$ is a function
-$\nu\colon \mathcal{D}\rightarrow \{0,1\}$ that for every \emph{argument} $d\in \mathcal{D}$ of the 
-\emph{domain} $\mathcal{D}$ defines a binary value $\nu(d)\in\{0,1\}$. 
-A \emph{parametrized family} of predicates is a set $\{\nu(\param;\cdot)\}_{\param\in\mathcal{P}}$ such that 
+$\nu\colon \mathcal{D}\rightarrow \{0,1\}$ that for every \emph{argument} $d\in \mathcal{D}$ of the
+\emph{domain} $\mathcal{D}$ defines a binary value $\nu(d)\in\{0,1\}$.
+A \emph{parametrized family} of predicates is a set $\{\nu(\param;\cdot)\}_{\param\in\mathcal{P}}$ such that
 for every \emph{parameter} $\param\in\mathcal{P}$, we have a predicate
-$\nu(\param;\cdot)\colon \mathcal{D}_\param\rightarrow\{0,1\}$, i.e. 
+$\nu(\param;\cdot)\colon \mathcal{D}_\param\rightarrow\{0,1\}$, i.e.
 \[
 \nu(\param;d)\in\{0,1\}
-\] 
+\]
 for every argument $d\in\mathcal{D}_\param$.
-In this section, we describe how predicates are described in the Unicity infrastructure and give some examples of predicates. 
+In this section, we describe how predicates are described in the Unicity infrastructure and give some examples of predicates.
 
 \subsection{Predicates in Unicity}
 Unicity infrastructure needs a somewhat restricted form of predicates.
-Every predicate $\nu_\mathsf{name}(\mathsf{par};\cdot)$ in Unicity has: 
+Every predicate $\nu_\mathsf{name}(\mathsf{par};\cdot)$ in Unicity has:
 \begin{itemize}
 \item \emph{Name} of the predicate denoted by $\mathsf{name}$
 \item \emph{Parameters} of the predicate denoted by $\mathsf{par}$ the type of which depends on $\mathsf{name}$
-\item \emph{Domain} $\mathcal{D}=\mathcal{D}_0\times\mathcal{D}_\mathsf{name}$, where $\mathcal{D}_0=\mathbb{T}\times\mathbb{H}$ is the standard part and 
+\item \emph{Domain} $\mathcal{D}=\mathcal{D}_0\times\mathcal{D}_\mathsf{name}$, where $\mathcal{D}_0=\mathbb{T}\times\mathbb{H}$ is the standard part and
 $\mathcal{D}_\mathsf{name}$ is the name-dependent part. Here, $\mathbb{T}$ is the set of all possible time values and $\mathbb{H}$ is the range of the hash function $H$ used in the Unicity system.
 \end{itemize}
 \medskip
@@ -141,27 +141,27 @@ $\mathcal{D}_\mathsf{name}$ is the name-dependent part. Here, $\mathbb{T}$ is th
 \noindent \emph{Arguments} of the predicates are in the form $(\tau,m,u)$, where:
 \begin{itemize}
 \item $\tau\in\mathbb{T}$ is the system time (explained below)
-\item $m\in \mathbb{H}$ is a hash value 
-\item $u\in\mathcal{D}_\mathsf{name}$ is the unlocking argument, the structure of which depends on both $\mathsf{name}$ and $\mathsf{par}$. 
+\item $m\in \mathbb{H}$ is a hash value
+\item $u\in\mathcal{D}_\mathsf{name}$ is the unlocking argument, the structure of which depends on both $\mathsf{name}$ and $\mathsf{par}$.
 \end{itemize}
 \medskip
 
-\noindent\emph{System time} $\tau$ is a non-negative integer hold by $\unisrv$ and incremented when $R$ is certified by the BFT layer. 
+\noindent\emph{System time} $\tau$ is a non-negative integer hold by $\unisrv$ and incremented when $R$ is certified by the BFT layer.
 System time can be extracted from inclusion proofs by $\tau'\gets \mathsf{time}(\pi)$, where $\tau'$ is the value of system time when $\pi$ was created.
 \medskip
 
 \noindent In a more technical description, the domain also contains a \emph{system information} component $\mathcal{T}$ that enables to verify the inclusion proofs. In actual implementation of the system, $\mathcal{T}$ contains the blockchain verification information that comes from the consensus (BFT) layer of the system, which consists of the block headers of the blockchain. We assume that $\unisrv$ and all users of the system have up to date version of $\mathcal{T}$ and, in this paper, we do not describe or study how this is guaranteed. Therefore, we omit $\mathcal{T}$ for simplicity. \medskip
 
 \noindent
-In software implementations, predicates are encoded similarly to public keys -- a predicate name code for $\mathsf{name}$ (like the algorithm identifier of generic public keys) followed by the binary representation of parameters $\mathsf{par}$. 
+In software implementations, predicates are encoded similarly to public keys -- a predicate name code for $\mathsf{name}$ (like the algorithm identifier of generic public keys) followed by the binary representation of parameters $\mathsf{par}$.
 
 
 \subsection{Examples of Predicates}
-In this section, we provide some examples of predicates that are useful to define in the Unicity infrastructure. 
+In this section, we provide some examples of predicates that are useful to define in the Unicity infrastructure.
 
 \subsubsection{Signature Predicate}
 
-The signature predicate  $\nu_\mathsf{sig}(\pubkey;\cdot)$ with a single public key $\pubkey$ as the parameter is equivalent to verification of a signatures with the public key $\pubkey$, or in Bitcoin terms, pay to the public key. 
+The signature predicate  $\nu_\mathsf{sig}(\pubkey;\cdot)$ with a single public key $\pubkey$ as the parameter is equivalent to verification of a signatures with the public key $\pubkey$, or in Bitcoin terms, pay to the public key.
 \medskip
 
 \noindent\textbf{Standard arguments}: $\tau,m$, i.e. system time $\tau$ and hash of a transaction $m$. As all other predicates have the same standard arguments, we will omit them for the next predicates.\medskip
@@ -171,24 +171,37 @@ The signature predicate  $\nu_\mathsf{sig}(\pubkey;\cdot)$ with a single public 
 \noindent\textbf{Definition}: $\nu_\mathsf{sig}(\pubkey;\tau,m,u)=1$ iff $\sigver(\pubkey,m,\sigma)=1$
 
 
+\subsubsection{P2PKH Predicate}
+
+The Pay-to-Public-Key-Hash (P2PKH) predicate $\nu_\mathsf{p2pkh}(h_\mathsf{pk};\cdot)$ with a public key hash $h_\mathsf{pk}$ as the parameter is equivalent to verification of a signature with a public key that hashes to $h_\mathsf{pk}$.
+\medskip
+
+\noindent\textbf{Name-specific arguments}: $u=(\pubkey, \sigma)$, i.e. $u$ contains the public key $\pubkey$ and a digital signature $\sigma$.\medskip
+
+\noindent\textbf{Definition}: $\nu_\mathsf{p2pkh}(h_\mathsf{pk};\tau,m,u)=1$ iff:
+\begin{itemize}
+\item $H(\pubkey)=h_\mathsf{pk} \mathrel{\land} \sigver(\pubkey,m,\sigma)=1$
+\end{itemize}
+
+
 \subsubsection{Multi-Signature Predicate}
-The multi-signature predicate 
+The multi-signature predicate
 $\nu_\mathsf{msig}(\pubkey_1,\ldots,\pubkey_n;\cdot)$ with a list $\pubkey_1,\ldots,\pubkey_n$ of $n$ public keys as parameters represents verification of $n$ signatures on the same message hash. \medskip
 
 \noindent\textbf{Name-specific arguments}: $u=(\sigma_1,\ldots,\sigma_n)$, where $\sigma_i$ are digital signatures.\medskip
 
-\noindent\textbf{Definition}: $\nu_\mathsf{msig}(\pubkey_1,\ldots,\pubkey_n;\tau,m,u)=1$ iff: 
+\noindent\textbf{Definition}: $\nu_\mathsf{msig}(\pubkey_1,\ldots,\pubkey_n;\tau,m,u)=1$ iff:
 \begin{itemize}
 \item $\sigver(\pubkey_i,m,\sigma_i)=1$ for every $i\in\{1,\ldots,n\}$
 \end{itemize}
 
 \subsubsection{Threshold-Signature Predicate}
-The threshold signature predicate 
+The threshold signature predicate
 $\nu_\mathsf{tsig}(k,\pubkey_1,\ldots,\pubkey_n;\cdot)$ with signature threshold $k\in\{1,\ldots,n\}$ and a list $\pubkey_1,\ldots,\pubkey_n$ of $n$ public keys as parameters is equivalent to verifying $k$ digital signatures with different public keys (in the list) on the same message hash $m$. \medskip
 
 \noindent\textbf{Name-specific arguments}: $u=((\sigma_1,j_1),\ldots,(\sigma_k,j_k))$ contain a list of pairs $(\sigma_i,j_i)$, where $j_i\in\{1,\ldots,k\}$ is the index of the public key that is supposed to be used for verifying $\sigma_i$. \medskip
 
-\noindent\textbf{Definition}: $\nu_\mathsf{msig}(k,\pubkey_1,\ldots,\pubkey_n;\tau,m,u)=1$ iff: 
+\noindent\textbf{Definition}: $\nu_\mathsf{tsig}(k,\pubkey_1,\ldots,\pubkey_n;\tau,m,u)=1$ iff:
 \begin{itemize}
 \item[1.] $\sigver(\pubkey_{j_i},m,\sigma_i)=1$ for every $i\in\{1,\ldots,k\}$
 \item[2.] All $j_i$ are different, i.e. $j_i=j_{i'}$ implies $i=i'$
@@ -196,20 +209,20 @@ $\nu_\mathsf{tsig}(k,\pubkey_1,\ldots,\pubkey_n;\cdot)$ with signature threshold
 The last requirement is necessary because otherwise the predicate can be satisfied by presenting $k$ copies of the same digital signature that verifies with the same public key, say $\pubkey_1$.
 
 \subsubsection{Hashed Timelock Predicate}
-The hashed timelock predicate 
+The hashed timelock predicate
 $\nu_\mathsf{htlc}(\pubkey,\pubkey',y,\tau_\mathsf{max};\cdot)$ with two public keys $\pubkey,\pubkey'$, a hash value $y\in\mathbb{H}$, and a timeout $\tau_\mathsf{max}\in\mathbb{T}$ as parameters is useful for atomic swaps, potentially between different blockchains \cite{Herl18,Bitc18a,Bitc18b}. We describe this predicate just as an example because in the swap protocol described in this paper uses different predicates. \medskip
 
 \noindent\textbf{Name-specific arguments}: $u=(x,\sigma)$, where $x$ is a hash value (a pre-image of $y$) and $\sigma$ is a a digital signature.\medskip
 
-\noindent\textbf{Definition}: $\nu_\mathsf{htlc}(\pubkey,\pubkey',y,\tau_\mathsf{max};\tau,m,u)=1$ iff  (a) or (b), where: 
+\noindent\textbf{Definition}: $\nu_\mathsf{htlc}(\pubkey,\pubkey',y,\tau_\mathsf{max};\tau,m,u)=1$ iff  (a) or (b), where:
 \begin{itemize}
 \item[(a)] $\sigver(\pubkey',m,\sigma)=1$, $y=H(x)$, and $\tau\le \tau_\mathsf{max}$
 \item[(b)] $\sigver(\pubkey,m,\sigma)=1$ and $\tau> \tau_\mathsf{max}$
 \end{itemize}
 \medskip
 
-\noindent 
-The owner of $\pubkey'$ is able to satisfy the predicate before system time $\tau_\mathsf{max}$ if he knows the $H$-preimage $x$ of $y$. 
+\noindent
+The owner of $\pubkey'$ is able to satisfy the predicate before system time $\tau_\mathsf{max}$ if he knows the $H$-preimage $x$ of $y$.
 The owner of $\pubkey$ is able to satisfy the predicate after $\tau_\mathsf{max}$.
 
 
@@ -223,16 +236,16 @@ Unicity service $\unisrv$ maintains a key/value store $R$ and system time $\tau$
 
 \noindent Unicity service processes \emph{requests} $Q=(\nu,h,v,u)$,  \emph{status queries} $Q_\mathsf{st}=(k)$, and \emph{new time} messages $NT=(\tau_\mathsf{new})$:
 \begin{itemize}
-\item $\pi\gets\unisrv(Q)$: For $k=H(\nu,h)$ and $m=H(h,v)$: 
+\item $\pi\gets\unisrv(Q)$: For $k=H(\nu,h)$ and $m=H(h,v)$:
 \begin{itemize}
-\item \textbf{If} $R[k]=\bot$ and $\nu(\tau, m, u)=1$ \textbf{then}: 
+\item \textbf{If} $R[k]=\bot$ and $\nu(\tau, m, u)=1$ \textbf{then}:
    \begin{itemize}
       \item Assign $R[k]\gets (v,u)$ and \textbf{return} inclusion proof $\pi$
    \end{itemize}
 \item \textbf{Else} \textbf{return} error
 \end{itemize}
 \item $(V,\pi)\gets \unisrv(Q_\mathsf{st})$: Create inclusion proof $\pi$ for $V=R[k]$ and return $(V,\pi)$. Note that $V=(v,u)$ or $V=\bot$
-\item $\unisrv(NT)$: \textbf{If} $\tau<\tau_\mathsf{new}$ \textbf{then} $\tau\gets \tau_\mathsf{new}$. 
+\item $\unisrv(NT)$: \textbf{If} $\tau<\tau_\mathsf{new}$ \textbf{then} $\tau\gets \tau_\mathsf{new}$.
 \end{itemize}
 Sometimes we use a shorthand notation $R[k]=v$ instead of $R[k]=(v,u)$\medskip
 
@@ -316,7 +329,7 @@ If at least one of the following checks fail, return 0, otherwise return 1:
 A tuple $(T,\sigma,\txhash,d,\pi)$ is said to be \emph{certified in state} $(\predi,h)$ iff $\certver(T,\sigma,\txhash,d,\pi;\predi,h)=1$.
 \end{definition}
 
-Mint transactions are the same as in Section~\ref{sec:mint-transaction}, i.e. they do not use generalized predicates.
+Mint transactions are the same as in the signature-based ownership \cite{BTLR25}, i.e. they do not use generalized predicates.
 
 \subsection{Token Ledger}
 
@@ -446,7 +459,7 @@ Let $A=(A_1,A_2)$ be a $t$-time adversary that succeeds in the association scena
 %For any fixed value of $L=(\sthash, \pubkey', \auxd', a)$, due to the perfect hiding, the probability distributions of $\txhash$ and $\txhash'$ are equal and due to Lemma~\ref{le:outputindependence} (by taking $g(x)=H(\pubkey',x,\auxd'))$), the random variables $\txhash$ and $\txhash'$ are both independent of $x$. This means that the arguments $(\sthash',\txhash)$ and $(\sthash',\txhash')$ of $A(a;\cdot)$ are equal
 %in both scenarios, and hence $A$ succeeds in the modified scenario with probability $\epsilon$. We construct an adversary $A'=(A'_1,A'_2)$ as follows:
 
-\noindent For any fixed value of $L=(\sthash, \predi', \auxd', a)$, due to perfect hiding, commitments $\txhash=\commitc(H(\predi',x,\auxd'))$ and $\txhash'=\commitc(H(\predi',x'',\auxd'))$ have equal probability distributions. Moreover, by Lemma~\ref{le:outputindependence} (with $g(x)=H(\predi',x,\auxd')$), the random variables $x$ and $\txhash=\commitc(H(\predi',x,\auxd'))$ are independent.
+\noindent For any fixed value of $L=(\sthash, \predi', \auxd', a)$, due to perfect hiding, commitments $\txhash=\commitc(H(\predi',x,\auxd'))$ and $\txhash'=\commitc(H(\predi',x'',\auxd'))$ have equal probability distributions. Moreover, by the Output Independence Lemma \cite{BTLR25} (with $g(x)=H(\predi',x,\auxd')$), the random variables $x$ and $\txhash=\commitc(H(\predi',x,\auxd'))$ are independent.
 
 Since $x''$ and $x$ are independent, the commitment $\txhash'=\commitc(H(\predi',x'',\auxd'))$ is independent of both $x$ and $\sthash'=H(\sthash,x)$. Therefore, the joint distributions of $(\sthash',\txhash)$ and $(\sthash',\txhash')$ are equal, and hence $A$ succeeds in the modified scenario with probability $\epsilon$. We construct an adversary $A'=(A'_1,A'_2)$ as follows:
 \begin{itemize}
@@ -549,7 +562,7 @@ so that $\predi[\iota](\tau,m,\sigma)=1$ without using the predicate solving fun
 \begin{theorem}
 If the predicate family $(\prgen,\prsig)$ is $S$-secure against solving and the hash function is $S$-secure collision-resistant, then the Unicity service is
 $S_\mathsf{block}$-secure against blocking, where $S_\mathsf{block}(\epsilon) =
-\frac{S(\epsilon/2)}{\max\{t_\mathsf{gen}, t_\mathsf{sig}, t_\mathsf{ver},t_\mathsf{ver},t_\mathsf{com},t_\mathsf{hash}\}}$
+\frac{S(\epsilon/2)}{\max\{t_\mathsf{gen}, t_\mathsf{sig}, t_\mathsf{ver},t_\mathsf{com},t_\mathsf{hash}\}}$
 and
 $t_\mathsf{gen}$, $t_\mathsf{sig}$, $t_\mathsf{ver},t_\mathsf{com},t_\mathsf{hash}$ are the
 key generation time (for $\prgen$), solving time (for $\prsig$), verification time (for $\predi$), commitment time, and hashing time, respectively.
@@ -601,104 +614,104 @@ $t_\mathsf{ver}$ is the signature verification time (for $\unisrv$ queries), $t_
 $t_\mathsf{hash}$ is the hash computation time (for output).
 \end{itemize}
 If $A$ succeeds, then either $A_\mathsf{coll}$ or $A_\mathsf{solve}^\mathcal{O}$ succeeds and hence $\epsilon \le \epsilon_\mathsf{coll} + \epsilon_\mathsf{solve}$.
-As for the function $\tau(t)=\max\{t_\mathsf{gen}, t_\mathsf{sig}, t_\mathsf{ver},t_\mathsf{ver},t_\mathsf{com},t_\mathsf{hash}\}\cdot t$ the inequalities $\tau_\mathsf{coll}(t)\le \tau(t)$
+As for the function $\tau(t)=\max\{t_\mathsf{gen}, t_\mathsf{sig}, t_\mathsf{ver},t_\mathsf{com},t_\mathsf{hash}\}\cdot t$ the inequalities $\tau_\mathsf{coll}(t)\le \tau(t)$
 and $\tau_\mathsf{solve}(t)\le \tau(t)$ hold, we imply that
 \[
 S_\mathsf{block}(\epsilon) = \tau^{-1}(S(\epsilon/2)) =
-\frac{S(\epsilon/2)}{\max\{t_\mathsf{gen}, t_\mathsf{sig}, t_\mathsf{ver},t_\mathsf{ver},t_\mathsf{com},t_\mathsf{hash}\}}
+\frac{S(\epsilon/2)}{\max\{t_\mathsf{gen}, t_\mathsf{sig}, t_\mathsf{ver},t_\mathsf{com},t_\mathsf{hash}\}}
 \]
 is a security profile of the Unicity Service against blocking.
 \end{proof}
 
 \section{Atomic Swap in the Unicity Infrastructure}\label{sec:swap}
-In this section, we describe an atomic commit protocol in the Unicity Infrastructure that uses specific predicates. The protocol has several advantages compared to the hashed timelock based inter-blockchain atomic swaps used for example in Bitcoin-like blockchains. For example, it is secure even if unconditional delays occur in the system.  
-The key aspect of success is the presence of a common reference information provided by the Unicity service. 
+In this section, we describe an atomic commit protocol in the Unicity Infrastructure that uses specific predicates. The protocol has several advantages compared to the hashed timelock based inter-blockchain atomic swaps used for example in Bitcoin-like blockchains. For example, it is secure even if unconditional delays occur in the system.
+The key aspect of success is the presence of a common reference information provided by the Unicity service.
 
 \subsection{Motivation and General Idea}
-The goal of atomic swap is to fairly and securely exchange tokens between their owners. If users $A$ and $B$ own tokens $\mathsf{Tok}_A$ and $\mathsf{Tok}_B$, respectively and they want to exchange their tokens so that after the exchange, $A$ owns $\mathsf{Tok}_B$ and vice versa. The parties agree to a certain timeout and run the swap protocol so that the following properties hold:
+The goal of atomic swap is to fairly and securely exchange tokens between their owners. Assume users $A$ and $B$ own tokens $\mathsf{Tok}_A$ and $\mathsf{Tok}_B$ and they want to exchange their tokens so that after the exchange, $A$ owns $\mathsf{Tok}_B$ and vice versa. The parties agree to a certain timeout and run the swap protocol so that the following properties hold:
 \begin{enumerate}
 \item If both parties follow the protocol, then the tokens change their owners.
-\item If at least one party deviates from the protocol, then $A$ and $B$ will retain control over their tokens after the agreed timeout. 
+\item If at least one party deviates from the protocol, then $A$ and $B$ will retain control over their tokens after the agreed timeout.
 \end{enumerate}
 To achieve this goal, the following multi-stage protocol is used:
 \begin{enumerate}
 \item The parties transfer their tokens to special \emph{preparation states} and agree on the timeout.
 \item The parties send each other the whole token ledgers and verify whether the tokens are indeed in the preparation states (based on the ledgers).
-\item The parties (are supposed to) \emph{commit}, i.e. transfer (independently) their tokens (directly from the preparation states) to special \emph{commit (swap) states}.  
+\item The parties (are supposed to) \emph{commit}, i.e. transfer (independently) their tokens (directly from the preparation states) to special \emph{commit (swap) states}.
 \end{enumerate}
 The swap states are defined (via suitable ownership predicates) so that:
 \begin{enumerate}
-\item If $\mathsf{Tok}_A$ is in the swap state, then $B$ will control (can make the next transaction with) $\mathsf{Tok}_A$ if $B$ committed $\mathsf{Tok}_B$ in time (before the timeout), and otherwise, $A$ will retain its control after the timeout. 
+\item If $\mathsf{Tok}_A$ is in the swap state, then $B$ will control (can make the next transaction with) $\mathsf{Tok}_A$ if $B$ committed $\mathsf{Tok}_B$ in time (before the timeout), and otherwise, $A$ will retain its control after the timeout.
 \item If $\mathsf{Tok}_B$ is in the swap state, then $A$ will control (can make the next transaction with) $\mathsf{Tok}_B$ if $A$ committed $\mathsf{Tok}_A$ in time (before the timeout), and otherwise, $B$ will retain its control after the timeout.
 \end{enumerate}
-The main question is how to define the abstract ownership predicates for the preparation states and for the swap states that guarantee the requirements of the atomic swap protocol, and how to define the unlocking witness $u$ of the swap predicate so that it includes the knowledge about actions of the other party, considering that the commitments may happen independently without direct communication between the parties.  
+The main question is how to define the abstract ownership predicates for the preparation states and for the swap states that guarantee the requirements of the atomic swap protocol, and how to define the unlocking witness $u$ of the swap predicate so that it includes the knowledge about actions of the other party, considering that the commitments may happen independently without direct communication between the parties.
 
 
 \subsection{Design Choices of the Protocol}
 
-Assume that initially, $\mathsf{Tok}_A$ and $\mathsf{Tok}_B$ are in "pure" states  
+Assume that initially, $\mathsf{Tok}_A$ and $\mathsf{Tok}_B$ are in "pure" states
 $S^A_0=(\nu_\mathsf{sig}(\pubkey_A;\cdot), h^0_A)$ and
 $S^B_0=(\nu_\mathsf{sig}(\pubkey_B;\cdot),h^0_B)$, respectively, i.e. their use (next transfer) requires digital signatures of the parties. \medskip
 
 \noindent In the \textbf{preparation phase}, the parties transfer their tokens to the preparation states $S^A_\mathsf{prep}=(\nu_\mathsf{prep}(\pubkey_A;\cdot),h^1_A)$ and $S^B_\mathsf{prep}=(\nu_\mathsf{prep}(\pubkey_B;\cdot),h^1_B)$, respectively by executing transactions $T^A_\mathsf{prep}=(h^0_A, D^A_\mathsf{prep})$ and
-$T^B_\mathsf{prep}=(h^0_B, D^B_\mathsf{prep})$, 
-where: 
+$T^B_\mathsf{prep}=(h^0_B, D^B_\mathsf{prep})$,
+where:
 \begin{eqnarray*}
 D^A_\mathsf{prep}&=&(\nu_\mathsf{prep}(\pubkey_A;\cdot),x^A_\mathsf{prep},\mathsf{aux}^A_\mathsf{prep})\\
-D^B_\mathsf{prep}&=&(\nu_\mathsf{prep}(\pubkey_B;\cdot),x^B_\mathsf{prep},\mathsf{aux}^B_\mathsf{prep})\enspace. 
+D^B_\mathsf{prep}&=&(\nu_\mathsf{prep}(\pubkey_B;\cdot),x^B_\mathsf{prep},\mathsf{aux}^B_\mathsf{prep})\enspace.
 \end{eqnarray*}
 The execution means that the parties sign those transactions, obtain the inclusion proofs $\pi^A_\mathsf{prep}$ and $\pi^B_\mathsf{prep}$ from $\unisrv$, and add certified transactions $C^A_\mathsf{prep}=(T^A_\mathsf{prep},\sigma^A_\mathsf{prep},\pi^A_\mathsf{prep})$ and $C^B_\mathsf{prep}=(T^B_\mathsf{prep},\sigma^B_\mathsf{prep},\pi^B_\mathsf{prep})$ to their ledgers. As the parties are supposed to exchange their ledgers, they can both see $T^A_\mathsf{prep}$ and $T^B_\mathsf{prep}$ and can check that the transactions contain the correct preparation predicates. Note also that the predicate $\nu_\mathsf{prep}$ is defined in a way that after preparation, both parties still have full control over their tokens, i.e. transferring the tokens further requires only the knowledge of their own private keys.
 \medskip
 
-\noindent In the \textbf{commit phase}, the parties transfer their tokens to the swap states: 
+\noindent In the \textbf{commit phase}, the parties transfer their tokens to the swap states:
 \begin{eqnarray*}
 S^A_\mathsf{swap}&=&(\nu_\mathsf{swap}(\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max};\cdot),h^2_A)\\
 S^B_\mathsf{swap}&=&(\nu_\mathsf{swap}(\pubkey_B,h^1_B,\pubkey_A,h^1_A,\tau_\mathsf{max};\cdot),h^2_B)
 \end{eqnarray*}
 by executing transactions $T^A_\mathsf{swap}=(h^1_A, D^A_\mathsf{swap})$ and
-$T^B_\mathsf{swap}=(h^1_B, D^B_\mathsf{swap})$, but the problem is that the parties may not see each other transactions. For example, if $A$ is malicious and commits, but after that does not send $T^A_\mathsf{swap}$ (or any other information) 
-to $B$. If $B$ also committed, then for making the next transaction with $\mathsf{Tok}_A$ (swap happened) $B$ has to construct a certified transaction for $T^A_\mathsf{swap}$ without knowing 
-the contents of the transaction. If $A$ did not commit and refuses to communicate with $B$ then how can $B$ "convince" the swap predicate of his own token that $A$ did not commit in time? 
+$T^B_\mathsf{swap}=(h^1_B, D^B_\mathsf{swap})$, but the problem is that the parties may not see each other transactions. For example, if $A$ is malicious and commits, but after that does not send $T^A_\mathsf{swap}$ (or any other information)
+to $B$. If $B$ also committed, then for making the next transaction with $\mathsf{Tok}_A$ (swap happened) $B$ has to construct a certified transaction for $T^A_\mathsf{swap}$ without knowing
+the contents of the transaction. If $A$ did not commit and refuses to communicate with $B$ then how can $B$ "convince" the swap predicate of his own token that $A$ did not commit in time?
 
 The only additional information source for $B$ is the Unicity Service, which gives information of type $R[k]=v$, i.e. which indices $k$ correspond to which values. For example, $B$ can query $\unisrv$ for the status of $k^A_\mathsf{prep}=H(S^A_\mathsf{prep})$, and
 if $R[k^A_\mathsf{prep}]=\bot$ at $\tau'>\tau_\mathsf{max}$, then $B$ knows that $A$ did not commit in time because a timely swap transaction would have caused $R[k^A_\mathsf{prep}]\neq \bot$ before $\tau_\mathsf{max}$. However, if $R[k^A_\mathsf{prep}]=v\neq\bot$ at $\tau'>\tau_\mathsf{max}$ then we do not know whether the transaction $T=(h^1_A,D)$ that defined $R[k^A_\mathsf{prep}]$ (and spent $S^A_\mathsf{prep}$) was a correct swap transaction,
-because on one hand, $v$ is computed using a perfectly hiding commitment scheme and contains no information about $D$. 
+because on one hand, $v$ is computed using a perfectly hiding commitment scheme and contains no information about $D$.
 On the other hand, even if swap transactions were certified without the commitment scheme (like minting transactions), then still $v=H(\nu,x,\mathsf{aux})$ and $x$ is random. So for $v$ giving any useful information about the correctness of $T$, we define the following requirements to swap transactions:
 \begin{enumerate}
-\item Swap transactions are certified without the commitment scheme (similar to mint transactions)
-\item The fields $x$ and $\mathsf{aux}$ in swap transactions must be known constants. We choose these constants to be $x=0^\ell$ and $\mathsf{aux}=\bot$. 
+\item Swap transactions are certified without the commitment scheme (similar to mint transactions).
+\item The fields $x$ and $\mathsf{aux}$ in swap transactions must be known constants. We choose these constants to be $x=0^\ell$ and $\mathsf{aux}=\bot$.
 \end{enumerate}
-This means that if $\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max}$ are known, then also the value 
+This means that if $\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max}$ are known, then also the value
 \[
 v^A_\mathsf{swap}= H(\nu_\mathsf{swap}(\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max};\cdot),0^\ell,\bot)
 \]
-is known. Under these requirements,  $\mathsf{Tok}_A$ is correctly transferred from the preparation state 
-$S^A_\mathsf{prep}=(\nu_\mathsf{prep}(\pubkey_A;\cdot),h^1_A)$ 
-to a correct swap state only if 
-$R[k^A_\mathsf{prep}]=v^A_\mathsf{swap}$. 
+is known. Under these requirements,  $\mathsf{Tok}_A$ is correctly transferred from the preparation state
+$S^A_\mathsf{prep}=(\nu_\mathsf{prep}(\pubkey_A;\cdot),h^1_A)$
+to a correct swap state only if
+$R[k^A_\mathsf{prep}]=v^A_\mathsf{swap}$.
 Therefore, we have the following rollback rule:
 \medskip\medskip
 
-\noindent \textbf{Rollback rule}: If 
-%$R[k^A_\mathsf{prep}]=\bot$ before the swap protocol and 
+\noindent \textbf{Rollback rule}: If
+%$R[k^A_\mathsf{prep}]=\bot$ before the swap protocol and
 $R[k^A_\mathsf{prep}]\neq v^A_\mathsf{swap}$ at some point $\tau'>\tau_\mathsf{max}$, then $A$ certainly did not commit in time.
 \medskip
 
-\noindent We also need a positive rule to decide that $A$ committed in time. Assume now that $R[k^A_\mathsf{prep}]=v^A_\mathsf{swap}$ at some point $\tau'\le \tau_\mathsf{max}$. 
-Does this imply that $A$ has committed in time? 
+\noindent We also need a positive rule to decide that $A$ committed in time. Assume now that $R[k^A_\mathsf{prep}]=v^A_\mathsf{swap}$ at some point $\tau'\le \tau_\mathsf{max}$.
+Does this imply that $A$ has committed in time?
 The answer turns out to be yes under the assumption that no $H$-collisions occur in the system and the signature scheme used is existentially unforgeable. This follows from the non-blocking security of the system -- only $A$ can block the state $S^A_\mathsf{prep}$ with a request $Q=(\nu_\mathsf{prep}(\pubkey_A;\cdot), h^1_A,v^A_\mathsf{swap},u)$ to $\unisrv$ and once $A$ has done it, the corresponding inclusion proof $\pi$ enables $A$ to construct a certified transaction that transfers $\mathsf{Tok}_A$ to the state $S^A_\mathsf{swap}$. It may seem that we are done, but not yet. In practice, we cannot assume that $B$ can always obtain the inclusion proof for $R[k^A_\mathsf{prep}]=v^A_\mathsf{swap}$ from $\unisrv$ in time (i.e., before $\tau_\mathsf{max}$) because $A$ may have committed in the last minute, $\unisrv$ may not always be accessible promptly, and the clocks of $B$ and $\unisrv$ may not be ideally synchronized. \medskip
 
 \noindent So, what can we imply if we only have information that $R[k^A_\mathsf{prep}]=v^A_\mathsf{swap}$ at some point $\tau'> \tau_\mathsf{max}$? Similarly to the discussion in the last paragraph, we can conclude that if no $H$-collisions occurred in the system, then a request of the form $Q=(\nu_\mathsf{prep}(\pubkey_A;\cdot), h^1_A,v^A_\mathsf{swap},u)$ was made to $\unisrv$ that defines $R[k^A_\mathsf{prep}]=v^A_\mathsf{swap}$, but we are not sure if it occurred before the timeout $\tau_\mathsf{max}$. That is why we will define the predicate $\nu_\mathsf{prep}(\pubkey_A;\cdot)$ in such a way that transferring $\mathsf{Tok}_A$ from the state $(\nu_\mathsf{prep}(\pubkey_A;\cdot), h^1_A)$ to the corresponding swap state with the ownership predicate $\nu_\mathsf{swap}(\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max};\cdot)$ is only possible before timeout $\tau_\mathsf{max}$. This is also the main reason why we need special preparation states. Now we finally have a proper execution rule:\medskip
 
-\noindent \textbf{Execution rule}: If 
-%$R[k^A_\mathsf{prep}]=\bot$ before the swap protocol and 
+\noindent \textbf{Execution rule}: If
+%$R[k^A_\mathsf{prep}]=\bot$ before the swap protocol and
 $R[k^A_\mathsf{prep}]=v^A_\mathsf{swap}$ at any point, no collisions occurred and the signature scheme is existentially unforgeable, then $A$ committed in time.
 \medskip
 
-\noindent Figure~\ref{fi:aswap} depicts the details of the commitment step in the atomic swap protocol, assuming that both parties successfully commit.  
+\noindent Figure~\ref{fi:aswap} depicts the details of the commitment step in the atomic swap protocol, assuming that both parties successfully commit.
 
 
-\begin{figure}[hhh]
+\begin{figure}[ht]
 \begin{center}
 \includegraphics[width=12cm]{pic/aswap.png}
 \caption{Computations and message flow of the commit phase.}\label{fi:aswap}
@@ -707,11 +720,11 @@ $R[k^A_\mathsf{prep}]=v^A_\mathsf{swap}$ at any point, no collisions occurred an
 
 
 \subsection{Swap-Related Predicates}
-In this section, we give definitions to the prepare predicate and the swap predicate and prove that their properties are sufficient to guarantee secure atomic swaps.  
+In this section, we give definitions to the prepare predicate and the swap predicate and prove that their properties are sufficient to guarantee secure atomic swaps.
 
 \subsubsection{Swap Preparation Predicate}
 
-A special predicate $\nu_\mathsf{prep}(\pubkey;\cdot)$ that is used as an abstract ownership condition for preparing tokens for atomic swaps. Functionally, it is similar to the signature predicate, but has different unlock arguments $u=(h,D,\sigma)$, where $h$ is a hash value, $D$ is an arbitrary data structure, and $\sigma$ is a digital signature. The value of the predicate is defined as follows:\medskip 
+A special predicate $\nu_\mathsf{prep}(\pubkey;\cdot)$ that is used as an abstract ownership condition for preparing tokens for atomic swaps. Functionally, it is similar to the signature predicate, but has different unlock arguments $u=(h,D,\sigma)$, where $h$ is a hash value, $D$ is an arbitrary data structure, and $\sigma$ is a digital signature. The value of the predicate is defined as follows:\medskip
 
 \noindent $\nu_\mathsf{prep}(\pubkey;\tau,m,h,D,\sigma) = 1$ iff:
 \begin{enumerate}
@@ -721,29 +734,29 @@ A special predicate $\nu_\mathsf{prep}(\pubkey;\cdot)$ that is used as an abstra
 %\begin{enumerate}
 %\item[3.1.] $\pubkey_1=\pubkey$ ($T$ swaps a token controlled by $\pubkey$)
 %\item[3.2.] $\tau\le \tau_\mathsf{max}$ ($T$ is executed in time)
-%\item[3.3.] $x=0^\ell$ 
+%\item[3.3.] $x=0^\ell$
 %\item[3.4.] $a=\bot$
 %\end{enumerate}
 \end{enumerate}
 This definition implies that if $T=(h,D)$ is a swap transaction from the state $(\nu_\mathsf{prep}(\pubkey;\cdot),h)$ to a state with ownership predicate $\nu_\mathsf{swap}(\pubkey,h,\pubkey',h',\tau_\mathsf{max};\cdot)$, then it cannot be certified after the timeout $\tau_\mathsf{max}$ without $H$-collisions created in the system.
 
-If $\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max}$ were the swap parameters agreed by $A$ and $B$ and $\mathsf{Tok}_A$ is in the state $S^A_\mathsf{prep}=(\nu_\mathsf{prep}(\pubkey_A;\cdot),h^1_A)$, then $A$ must commit at $\tau_\mathsf{max}$ ($\unisrv$ time) the latest, because later the request $Q^A_\mathsf{swap}=(\nu_\mathsf{prep}$$(\pubkey_A;\cdot),h^1_A,v^A_\mathsf{swap},u^A_\mathsf{swap})$ (Fig.~\ref{fi:aswap}) will not be accepted by $\unisrv$. 
+If $\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max}$ were the swap parameters agreed by $A$ and $B$ and $\mathsf{Tok}_A$ is in the state $S^A_\mathsf{prep}=(\nu_\mathsf{prep}(\pubkey_A;\cdot),h^1_A)$, then $A$ must commit at $\tau_\mathsf{max}$ ($\unisrv$ time) the latest, because later the request $Q^A_\mathsf{swap}=(\nu_\mathsf{prep}$$(\pubkey_A;\cdot),h^1_A,v^A_\mathsf{swap},u^A_\mathsf{swap})$ (Fig.~\ref{fi:aswap}) will not be accepted by $\unisrv$.
 
 
 \subsubsection{Swap Predicate}
 
-A special predicate $\nu_\mathsf{swap}(\pubkey,h,\pubkey',h',\tau_\mathsf{max};\cdot)$ that is used as an abstract ownership condition for tokens committed to swaps. 
-It has unlock arguments $u=(v,\pi,\sigma)$, where $v$ is a storage value (of $R$ in $\unisrv$), $\pi$ is an inclusion proof, and $\sigma$ is a digital signature. 
-The value of the predicate is defined as follows:\medskip 
+A special predicate $\nu_\mathsf{swap}(\pubkey,h,\pubkey',h',\tau_\mathsf{max};\cdot)$ that is used as an abstract ownership condition for tokens committed to swaps.
+It has unlock arguments $u=(v,\pi,\sigma)$, where $v$ is a storage value (of $R$ in $\unisrv$), $\pi$ is an inclusion proof, and $\sigma$ is a digital signature.
+The value of the predicate is defined as follows:\medskip
 
 \noindent $\nu_\mathsf{swap}(\pubkey,h,\pubkey',h',\tau_\mathsf{max};\tau,m,v,\pi,\sigma) = 1$ iff:
 \begin{itemize}
 \item[1.] $f_\mathsf{inc}(H(S'_\mathsf{prep}),v,\pi)=1$ for $S'_\mathsf{prep}=(\nu_\mathsf{prep}(\pubkey';\cdot),h')$
-\item[2.] For $v'_\mathsf{swap}=H(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max}),0^\ell,\bot)$ either (a) or (b): 
+\item[2.] For $v'_\mathsf{swap}=H(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max}),0^\ell,\bot)$ either (a) or (b):
     \begin{itemize}
     \item[(a)] $\sigver(\pubkey',m,\sigma)\!=\!1 \wedge v=v'_\mathsf{swap}$
     \item[(b)] $\sigver(\pubkey,m,\sigma)\!=\!1 \wedge v\neq v'_\mathsf{swap}
-    \wedge \tau_\mathsf{max}<\tau$ 
+    \wedge \tau_\mathsf{max}<\tau$
     \end{itemize}
 \end{itemize}
 \medskip
@@ -751,17 +764,17 @@ The value of the predicate is defined as follows:\medskip
 \noindent The function $f_\mathsf{inc}(k,v,\pi)\in\{0,1\}$ is evaluated via direct check $R[k]\stackrel{\mbox{?}}{=} v$ by $\unisrv$ and via the verification function $\mathcal{V}(k,v,\pi)$ by users.
 
 In general, if $\mathsf{time}(\pi) \neq \tau$ then it is possible that users and $\unisrv$ (at $\tau$) evaluate $f_\mathsf{inc}(k,v,\pi)$ differently. However, it turns out that in the case of the swap protocol, this difference does not play any role.
-%In a normal scenario, the swap predicate (with given arguments) is evaluated first at the $\unisrv$ side when the swap state is spent. 
+%In a normal scenario, the swap predicate (with given arguments) is evaluated first at the $\unisrv$ side when the swap state is spent.
 
 \begin{lemma}\label{le:atomic-rollback}
-If $R[H(S'_\mathsf{prep})]\neq v'_\mathsf{swap}$ at $\tau>\tau_\mathsf{max}$, where $S'_\mathsf{prep}=(\nu_\mathsf{prep}(\pubkey';\cdot),h')$,  $v'_\mathsf{swap}=H(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max};\cdot),0^\ell,\bot)$, and a token was in the state $S'_\mathsf{prep}$, 
-then the token was not properly committed 
-by its owner in the swap protocol with parameters 
+If $R[H(S'_\mathsf{prep})]\neq v'_\mathsf{swap}$ at $\tau>\tau_\mathsf{max}$, where $S'_\mathsf{prep}=(\nu_\mathsf{prep}(\pubkey';\cdot),h')$,  $v'_\mathsf{swap}=H(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max};\cdot),0^\ell,\bot)$, and a token was in the state $S'_\mathsf{prep}$,
+then the token was not properly committed
+by its owner in the swap protocol with parameters
 $\pubkey,h,\pubkey',h',\tau_\mathsf{max}$.\end{lemma}
 \begin{proof}
-Assume to the contrary that the owner of the token committed properly. This means that the transaction $T'_\mathsf{swap}=(h',D'_\mathsf{swap})$, where $D'_\mathsf{swap}=(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max};\cdot),0^\ell,\bot)$ was certified at $S'_\mathsf{prep}$ before $\tau_\mathsf{max}$. This implies that there was a successful request $Q=(\nu_\mathsf{prep}(\pubkey';\cdot),h',v'_\mathsf{swap},u')$ 
-to $\unisrv$ before $\tau_\mathsf{max}$, 
-but such a request will induce $R[H(S'_\mathsf{prep})]\gets v'_\mathsf{swap}\neq\bot$ before $\tau_\mathsf{max}$ and hence, as $R$ is append-only,  
+Assume to the contrary that the owner of the token committed properly. This means that the transaction $T'_\mathsf{swap}=(h',D'_\mathsf{swap})$, where $D'_\mathsf{swap}=(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max};\cdot),0^\ell,\bot)$ was certified at $S'_\mathsf{prep}$ before $\tau_\mathsf{max}$. This implies that there was a successful request $Q=(\nu_\mathsf{prep}(\pubkey';\cdot),h',v'_\mathsf{swap},u')$
+to $\unisrv$ before $\tau_\mathsf{max}$,
+but such a request will induce $R[H(S'_\mathsf{prep})]\gets v'_\mathsf{swap}\neq\bot$ before $\tau_\mathsf{max}$ and hence, as $R$ is append-only,
 $R[H(S'_\mathsf{prep})]= v'_\mathsf{swap}$
 at $\tau>\tau_\mathsf{max}$, a contradiction.
 \end{proof}
@@ -769,39 +782,40 @@ at $\tau>\tau_\mathsf{max}$, a contradiction.
 
 \begin{lemma}\label{le:atomic-success}
 If $R[H(S'_\mathsf{prep})]= v'_\mathsf{swap}$ at some point, where $S'_\mathsf{prep}=(\nu_\mathsf{prep}(\pubkey';\cdot),h')$,  $v'_\mathsf{swap}=H(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max};\cdot),0^\ell,\bot)$, a token was in the state $S'_\mathsf{prep}$, and no $H$-collisions occur, then a successful request $Q=(\nu_\mathsf{prep}(\pubkey';\cdot),h',v'_\mathsf{swap},u')$
-to $\unisrv$ was made at $\tau\le\tau_\mathsf{max}$ that 
-certifies the swap transaction $T'_\mathsf{swap}=(h',D'_\mathsf{swap})$, where $D'_\mathsf{swap}=(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max};\cdot),0^\ell,\bot)$ at state $S'_\mathsf{prep}$. 
+to $\unisrv$ was made at $\tau\le\tau_\mathsf{max}$ that
+certifies the swap transaction $T'_\mathsf{swap}=(h',D'_\mathsf{swap})$, where $D'_\mathsf{swap}=(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max};\cdot),0^\ell,\bot)$ at state $S'_\mathsf{prep}$.
 \end{lemma}
 \begin{proof}
-If $R[H(S'_\mathsf{prep})]=v'_\mathsf{swap}$, then a successful request $\pi\gets \unisrv(\nu,h,v'_\mathsf{swap},u)$ at some point $\tau$ was received by $\unisrv$ so that $H(S'_\mathsf{prep})=H(\nu,h)$ and hence $\nu=\nu_\mathsf{prep}(\pubkey';\cdot)$ and $h=h'$. The request was successful then $u'$ is in the form $u'=(h,D,\sigma)$, and $\nu_\mathsf{prep}(\pubkey';\tau,H(h',v'_\mathsf{swap}),h,D,\sigma)=1$. From the definition of $\nu_\mathsf{prep}$ (2.), it follows that $m=H(h',v'_\mathsf{swap})=H(h',H(D))$ which implies $v'_\mathsf{swap}=H(D)$ and hence $D=(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max};\cdot),0^\ell,\bot)$, which from the definition of $\nu_\mathsf{prep}$ (3.) implies 
-$\tau=\mathsf{time}(\pi)\le\tau_\mathsf{max}$. 
-As 
+If $R[H(S'_\mathsf{prep})]=v'_\mathsf{swap}$, then a successful request $\pi\gets \unisrv(\nu,h,v'_\mathsf{swap},u)$ at some point $\tau$ was received by $\unisrv$ so that $H(S'_\mathsf{prep})=H(\nu,h)$ and hence $\nu=\nu_\mathsf{prep}(\pubkey';\cdot)$ and $h=h'$. The request was successful then $u'$ is in the form $u'=(h,D,\sigma)$, and $\nu_\mathsf{prep}(\pubkey';\tau,H(h',v'_\mathsf{swap}),h,D,\sigma)=1$. From the definition of $\nu_\mathsf{prep}$ (2.), it follows that $m=H(h',v'_\mathsf{swap})=H(h',H(D))$ which implies $v'_\mathsf{swap}=H(D)$ and hence $D=(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max};\cdot),0^\ell,\bot)$, which from the definition of $\nu_\mathsf{prep}$ (3.) implies
+$\tau=\mathsf{time}(\pi)\le\tau_\mathsf{max}$.
+As
 \[
 \nu_\mathsf{prep}(\pubkey';\mathsf{time}(\pi), H(h',v'_\mathsf{swap}), u') = 1\enspace.
 \]
 and $\univer(H(S'_\mathsf{prep}),v'_\mathsf{swap},\pi)=1$, we conclude that $(T'_\mathsf{swap},u',\pi)$ is a certified swap transaction at $S'_\mathsf{prep}$.
 \end{proof}\medskip
 
-\noindent If the signature scheme is existentially unforgeable and the private key of $\pubkey'$ is not compromised, then practically the conclusion of Lemma~\ref{le:atomic-success} means that the owner of the token committed properly.  
+\noindent If the signature scheme is existentially unforgeable and the private key of $\pubkey'$ is not compromised, then practically the conclusion of Lemma~\ref{le:atomic-success} means that the owner of the token committed properly.
 
 The conditions $\mathcal{A}\equiv R[H(S'_\mathsf{swap})]=v'_\mathsf{swap}$
-and $\mathcal{B}\equiv R[H(S'_\mathsf{swap})]\neq v'_\mathsf{swap}\wedge \tau_\mathsf{max}<\tau$ clearly cannot be both true at the same time. Moreover, if $\mathcal{B}$ holds at $\tau$, then $\mathcal{A}$ can never hold, because the proof of Lemma~\ref{le:atomic-success} suggests that if $\mathcal{A}$ is true at any time, then it must be true 
-also at some $\tau'\le \tau_\mathsf{max}$, but then, due to the append-only property, $\mathcal{A}$ must hold also at $\tau$. 
+and $\mathcal{B}\equiv R[H(S'_\mathsf{swap})]\neq v'_\mathsf{swap}\wedge \tau_\mathsf{max}<\tau$ clearly cannot be both true at the same time. Moreover, if $\mathcal{B}$ holds at $\tau$, then $\mathcal{A}$ can never hold, because the proof of Lemma~\ref{le:atomic-success} suggests that if $\mathcal{A}$ is true at any time, then it must be true
+also at some $\tau'\le \tau_\mathsf{max}$, but then, due to the append-only property, $\mathcal{A}$ must hold also at $\tau$.
 
 Also, at any time $\tau>\tau_\mathsf{max}$, either $\mathcal{A}$ or $\mathcal{B}$ must be true, because always, either $R[H(S'_\mathsf{swap})]=v'_\mathsf{swap}$
 or $R[H(S'_\mathsf{swap})]\neq v'_\mathsf{swap}$. Therefore, the swap predicate $\nu_\mathsf{swap}$ correctly implements the requirements of the swap protocol between $A$ and $B$:
 \begin{itemize}
 \item[1.] If $A$ and $B$ follow the protocol, then the swap happens
-\item[2.] If $A$ or $B$ (or both) deviate from the protocol, then $A$ and $B$ will get their tokens back 
+\item[2.] If $A$ or $B$ (or both) deviate from the protocol, then $A$ and $B$ will get their tokens back
 \end{itemize}
 
 \subsection{Detailed Message Flow of the Protocol}
-In this subsection, we describe the message flow and computations during the swap protocol from the viewpoint of $A$. 
+
+In this subsection, we describe the message flow and computations during the swap protocol from the viewpoint of $A$.
 \medskip
 
-\noindent\textbf{Preparation of $A$}: To transfer $\mathsf{Tok}_A$ to the state $(\nu^A_\mathsf{prep}(\pubkey_A;\cdot),h^1_A)$, the party $A$ runs the following protocol that involves communication with $\unisrv$:
+\noindent\textbf{Preparation of $A$}: To transfer $\mathsf{Tok}_A$ to the state $(\nu_\mathsf{prep}(\pubkey_A;\cdot),h^1_A)$, the party $A$ runs the following protocol that involves communication with $\unisrv$:
 \begin{enumerate}
-    \item $A$ computes: $D^A_\mathsf{prep}\gets (\nu_\mathsf{prep}(\pubkey_A;\cdot), 0^\ell,\bot)$ 
+    \item $A$ computes: $D^A_\mathsf{prep}\gets (\nu_\mathsf{prep}(\pubkey_A;\cdot), 0^\ell,\bot)$
     \item $A$ computes: $v^A_\mathsf{prep}\gets H(D^A_\mathsf{prep})$
     \item $A$ computes: $T^A_\mathsf{prep}\gets (h^0_A, D^A_\mathsf{prep})$
     \item $A$ computes: $u^A_\mathsf{prep}\gets \sig(\prikey_A,H(h^0_A,v^A_\mathsf{prep}))$
@@ -815,12 +829,12 @@ In this subsection, we describe the message flow and computations during the swa
     \item $\unisrv$ sends $A$: $\pi^A_\mathsf{prep}$
     \item $A$ computes : $C^A_\mathsf{prep}\gets (T^A_\mathsf{prep},u^A_\mathsf{prep},v^A_\mathsf{prep},\pi^A_\mathsf{prep})$ and adds $C^A_\mathsf{prep}$ as a certified transaction to the ledger of $\mathsf{Tok}_A$.
 \end{enumerate}
-After these steps, $\mathsf{Tok}_A$ is in the state $(\nu_\mathsf{prep}(\pubkey_A;\cdot),h^1_A)$, where $h^1_A=H(h^0_A,0^\ell)$, and if 
+After these steps, $\mathsf{Tok}_A$ is in the state $(\nu_\mathsf{prep}(\pubkey_A;\cdot),h^1_A)$, where $h^1_A=H(h^0_A,0^\ell)$, and if
 $B$ proceeds analogously, $\mathsf{Tok}_B$ is in the state $(\nu_\mathsf{prep}(\pubkey_B;\cdot),h^1_B)$, where $h^1_B=H(h^0_B,0^\ell)$. The parties now exchange the full token ledgers, check if the tokens are indeed in correct states, and agree on the timeout value $\tau_\mathsf{max}$. Party $A$ is now ready for the commitment phase. \medskip
 
 \noindent\textbf{Commitment of $A$}: To transfer $\mathsf{Tok}_A$ to $(\nu^A_\mathsf{swap}(\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max};\cdot),h^2_A)$, the party $A$ runs the following protocol that involves communication with $\unisrv$:
 \begin{enumerate}
-    \item $A$ computes: $D^A_\mathsf{swap}\gets (\nu_\mathsf{swap}(\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max};\cdot), 0^\ell,\bot)$ 
+    \item $A$ computes: $D^A_\mathsf{swap}\gets (\nu_\mathsf{swap}(\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max};\cdot), 0^\ell,\bot)$
     \item $A$ computes: $v^A_\mathsf{swap}\gets H(D^A_\mathsf{swap})$
     \item $A$ computes: $T^A_\mathsf{swap}\gets (h^1_A, D^A_\mathsf{swap})$
     \item $A$ computes: $\sigma^A_\mathsf{swap}\gets \sig(\prikey_A,H(h^1_A,v^A_\mathsf{swap}))$
@@ -829,23 +843,23 @@ $B$ proceeds analogously, $\mathsf{Tok}_B$ is in the state $(\nu_\mathsf{prep}(\
     \item $\unisrv$ computes: $\tau^A_\mathsf{swap}\gets \tau$
     \item $\unisrv$ computes: $k^A_\mathsf{prep}\gets H(\nu_\mathsf{prep}(\pubkey_A;\cdot),h^1_A)$
     \item $\unisrv$ checks: $R[k^A_\mathsf{prep}]=\bot$
-    \item $\unisrv$ checks: $\nu_\mathsf{prep}(\pubkey_A;\tau^A_\mathsf{swap},H(h^1_A,v^A_\mathsf{swap}),u^A_\mathsf{swap},)=1$
+    \item $\unisrv$ checks: $\nu_\mathsf{prep}(\pubkey_A;\tau^A_\mathsf{swap},H(h^1_A,v^A_\mathsf{swap}),u^A_\mathsf{swap})=1$
     \item $\unisrv$ sets: $R[k^A_\mathsf{prep}]\gets (v^A_\mathsf{swap},u^A_\mathsf{swap})$
     \item $\unisrv$ obtains: $\pi^A_\mathsf{swap}$ for $Q^A_\mathsf{swap}$. Note that $\mathsf{time}(\pi^A_\mathsf{swap})=\tau^A_\mathsf{swap}$
     %\item $\unisrv$ computes: $k^B_\mathsf{prep}\gets H(\nu_\mathsf{prep}(\pubkey_B;\cdot),h^1_B)$
     %\item $\unisrv$ computes: $D^B_\mathsf{swap}\gets (\nu_\mathsf{swap}(\pubkey_B,h^1_B,\pubkey_A,h^1_A,\tau_\mathsf{max};\cdot), 0^\ell,\bot)$
     %\item $\unisrv$ computes: $v^B_\mathsf{swap}\gets H(D^B_\mathsf{swap})$
     %\item $\unisrv$ computes: $k^A_\mathsf{swap}\gets H(\nu_\mathsf{swap}(\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max};\cdot),H(h^1_A,0^\ell))$
- 
-    %\, (Q^A_\mathsf{swap}, \pi^A_\mathsf{swap}, \tau_\mathsf{max}, k^A_\mathsf{swap},k^B_\mathsf{prep},v^B_\mathsf{swap})$, 
-    %where $(Q^A_\mathsf{swap}, \pi^A_\mathsf{swap}, \tau_\mathsf{max}, k^A_\mathsf{swap},k^B_\mathsf{prep},v^B_\mathsf{swap})$ is temporary info that is used to answer status requests $Q_\mathsf{st}=(k^A_\mathsf{prep})$ to obtain $\pi^A_\mathsf{swap}$ by $B$ in case $A$ committed but refuses to communicate with $B$ after that.   
+
+    %\, (Q^A_\mathsf{swap}, \pi^A_\mathsf{swap}, \tau_\mathsf{max}, k^A_\mathsf{swap},k^B_\mathsf{prep},v^B_\mathsf{swap})$,
+    %where $(Q^A_\mathsf{swap}, \pi^A_\mathsf{swap}, \tau_\mathsf{max}, k^A_\mathsf{swap},k^B_\mathsf{prep},v^B_\mathsf{swap})$ is temporary info that is used to answer status requests $Q_\mathsf{st}=(k^A_\mathsf{prep})$ to obtain $\pi^A_\mathsf{swap}$ by $B$ in case $A$ committed but refuses to communicate with $B$ after that.
     %The temporary info can be deleted later when $\tau>\tau_\mathsf{max}$ and either:
-    %\begin{itemize} 
+    %\begin{itemize}
     %    \item $R[k^B_\mathsf{prep}]\neq v^B_\mathsf{swap}$, i.e. $B$ didn't commit and never needs $\pi^A_\mathsf{swap}$
     %    \item $R[k^B_\mathsf{prep}]=v^B_\mathsf{swap}\, \wedge \, R[k^A_\mathsf{swap}]\neq \bot$, i.e.
-    %    $B$ already has $\pi^A_\mathsf{swap}$, because then both parties committed ($A$ committed, because the additional info is in $R[k^A_\mathsf{prep}]$ only if $R[k^A_\mathsf{prep}]=v^A_\mathsf{swap}$), and hence only $B$ could make the transaction with $\mathsf{Tok}_A$ that spent $R[k^A_\mathsf{swap}]$.  
+    %    $B$ already has $\pi^A_\mathsf{swap}$, because then both parties committed ($A$ committed, because the additional info is in $R[k^A_\mathsf{prep}]$ only if $R[k^A_\mathsf{prep}]=v^A_\mathsf{swap}$), and hence only $B$ could make the transaction with $\mathsf{Tok}_A$ that spent $R[k^A_\mathsf{swap}]$.
     %\end{itemize}
-    %Such additional info is stored only for queries $Q=(\nu,\sthash,\txhash,u)$, where $\nu=\nu_\mathsf{prep}$ and $u.D$ contains $\nu_\mathsf{swap}$. 
+    %Such additional info is stored only for queries $Q=(\nu,\sthash,\txhash,u)$, where $\nu=\nu_\mathsf{prep}$ and $u.D$ contains $\nu_\mathsf{swap}$.
     \item $\unisrv$ sends $A$: $\pi^A_\mathsf{swap}$
     \item $A$ computes : $C^A_\mathsf{swap}\gets (T^A_\mathsf{swap},u^A_\mathsf{swap},v^A_\mathsf{swap},\pi^A_\mathsf{swap})$ and adds $C^A_\mathsf{swap}$ as a certified transaction to the ledger of $\mathsf{Tok}_A$.
     \item $A$ sends $B$ : $C^A_\mathsf{swap}$
@@ -856,36 +870,36 @@ and $A$ receives $C^B_\mathsf{swap}=(T^B_\mathsf{swap},u^B_\mathsf{swap},v^B_\ma
 
 \noindent\textbf{Recovery of $A$}:  If $A$ has not received $C^B_\mathsf{swap}$ at $\tau_\mathsf{max}$, then:
 \begin{enumerate}
-    \item $A$ computes: $D^B_\mathsf{swap}\gets (\nu_\mathsf{swap}(\pubkey_B,h^1_B,\pubkey_A,h^1_A,\tau_\mathsf{max};\cdot), 0^\ell,\bot)$ 
+    \item $A$ computes: $D^B_\mathsf{swap}\gets (\nu_\mathsf{swap}(\pubkey_B,h^1_B,\pubkey_A,h^1_A,\tau_\mathsf{max};\cdot), 0^\ell,\bot)$
     \item $A$ computes: $v^B_\mathsf{swap}\gets H(D^B_\mathsf{swap})$
     \item $A$ computes: $T^B_\mathsf{swap}\gets (h^1_B, D^B_\mathsf{swap})$
     \item $A$ computes: $k^B_\mathsf{prep}\gets H(\nu_\mathsf{prep}(\pubkey_B;\cdot),h^1_B)$
     \item $A$ sends $\unisrv$ : $Q_\mathsf{prf}(k^B_\mathsf{prep})$
     \item $\unisrv$ computes : $\tau'\gets \tau$
     \item $\unisrv$ computes : $v\gets R[k^B_\mathsf{prep}]$
-    \item $\unisrv$ obtains : $\pi^B_\mathsf{prf}$ for $v=R[k^B_\mathsf{prep}]$. 
-    \item $\unisrv$ sends $A$ : $v,\pi^B_\mathsf{prf}$. ( 
+    \item $\unisrv$ obtains : $\pi^B_\mathsf{prf}$ for $v=R[k^B_\mathsf{prep}]$.
+    \item $\unisrv$ sends $A$ : $v,\pi^B_\mathsf{prf}$. (
     $\mathsf{time}(\pi^B_\mathsf{prf})=\tau'>\tau_\mathsf{max}$ and $\univer(k^B_\mathsf{prep},v,\pi^B_\mathsf{prf})=1$)
 \end{enumerate}
 If $v=(v^B_\mathsf{swap},u^B_\mathsf{swap})$ then $A$ computes
-$\overline{C}^B_\mathsf{swap}=(T^B_\mathsf{swap},u^B_\mathsf{swap},v^B_\mathsf{swap},\pi^B_\mathsf{prf})$. 
-As $\univer(k^B_\mathsf{prep},v,\pi^B_\mathsf{prf})=1$ implies that 
+$\overline{C}^B_\mathsf{swap}=(T^B_\mathsf{swap},u^B_\mathsf{swap},v^B_\mathsf{swap},\pi^B_\mathsf{prf})$.
+As $\univer(k^B_\mathsf{prep},v,\pi^B_\mathsf{prf})=1$ implies that
 $R[k^B_\mathsf{prep}]=(v^B_\mathsf{swap},u^B_\mathsf{swap})$ at $\tau'=\mathsf{time}(\pi^B_\mathsf{prf})$, there was a request $Q=(\nu,\sthash,v^B_\mathsf{swap},u^B_\mathsf{swap})$ such that $H(\nu,\sthash)=k^B_\mathsf{prep}=H(\nu_\mathsf{prep}(\pubkey_B;\cdot),h^1_B)$
-which implies $\nu=\nu_\mathsf{prep}(\pubkey_B;\cdot)$ and $\sthash=h^1_B$ if no $H$-collisions occur. Therefore, $\overline{C}^B_\mathsf{swap}$ is a certified transaction in $(\nu_\mathsf{prep}(\pubkey_B;\cdot),h^1_B)$ and can be used to extend the ledger of $\mathsf{Tok}_B$ (see also Lemma~\ref{le:atomic-success}),  
+which implies $\nu=\nu_\mathsf{prep}(\pubkey_B;\cdot)$ and $\sthash=h^1_B$ if no $H$-collisions occur. Therefore, $\overline{C}^B_\mathsf{swap}$ is a certified transaction in $(\nu_\mathsf{prep}(\pubkey_B;\cdot),h^1_B)$ and can be used to extend the ledger of $\mathsf{Tok}_B$ (see also Lemma~\ref{le:atomic-success}),
 and $A$ is now ready for successful finalization.\medskip
 
 \noindent If $v=\bot$ or  $v=(v',u)$  where $v'\neq v^B_\mathsf{swap}$ then
-$A$ is ready for unsuccessful finalization (Lemma~\ref{le:atomic-rollback}). 
+$A$ is ready for unsuccessful finalization (Lemma~\ref{le:atomic-rollback}).
 \medskip
 
-\noindent\textbf{Successful finalization of $A$}: Party $A$ now controls $\mathsf{Tok}_B$. 
-The last certified transaction in the ledger of $\mathsf{Tok}_A$ is 
+\noindent\textbf{Successful finalization of $A$}: Party $A$ now controls $\mathsf{Tok}_B$.
+The last certified transaction in the ledger of $\mathsf{Tok}_A$ is
 $C^A_\mathsf{swap}=(T^A_\mathsf{swap},u^A_\mathsf{swap},v^A_\mathsf{swap},\pi^A_\mathsf{swap})$.
-To transfer $\mathsf{Tok}_B$ from 
+To transfer $\mathsf{Tok}_B$ from
 $(\nu_\mathsf{swap}(\pubkey_B,h^1_B,\pubkey_A,h^1_A,\tau_\mathsf{max};\cdot),h^2_B)$
  to $(\nu^A_\mathsf{sig}(\pubkey_A;\cdot),h^3_A)$, the party $A$ runs the following protocol that involves communication with $\unisrv$:
 \begin{enumerate}
-    \item $A$ computes: $D^A_\mathsf{fin}\gets (\nu_\mathsf{sig}(\pubkey_A;\cdot), 0^\ell,\bot)$ 
+    \item $A$ computes: $D^A_\mathsf{fin}\gets (\nu_\mathsf{sig}(\pubkey_A;\cdot), 0^\ell,\bot)$
     \item $A$ computes: $v^A_\mathsf{fin}\gets H(D^A_\mathsf{fin})$
     \item $A$ computes: $T^A_\mathsf{fin}\gets (h^2_B, D^A_\mathsf{fin})$
     \item $A$ computes: $\sigma^A_\mathsf{fin}\gets \sig(\prikey_A,H(h^2_B,v^A_\mathsf{fin}))$
@@ -894,25 +908,25 @@ $(\nu_\mathsf{swap}(\pubkey_B,h^1_B,\pubkey_A,h^1_A,\tau_\mathsf{max};\cdot),h^2
     \item $\unisrv$ computes: $\tau^A_\mathsf{fin}\gets \tau$
     \item $\unisrv$ computes: $k^A_\mathsf{fin}\gets H(\nu_\mathsf{swap}(\pubkey_B,h^1_B,\pubkey_A,h^1_A,\tau_\mathsf{max};\cdot),h^2_B)$
     \item $\unisrv$ checks: $R[k^A_\mathsf{fin}]=\bot$
-    \item $\unisrv$ checks: $\nu_\mathsf{swap}(\pubkey_B,h^1_B,\pubkey_A,h^1_A,\tau_\mathsf{max};\tau^A_\mathsf{fin},H(h^2_B,v^A_\mathsf{fin}),u^A_\mathsf{fin})=1$. 
+    \item $\unisrv$ checks: $\nu_\mathsf{swap}(\pubkey_B,h^1_B,\pubkey_A,h^1_A,\tau_\mathsf{max};\tau^A_\mathsf{fin},H(h^2_B,v^A_\mathsf{fin}),u^A_\mathsf{fin})=1$.
     \item $\unisrv$ sets: $R[k^A_\mathsf{fin}]\gets (v^A_\mathsf{fin},u^A_\mathsf{fin})$
     \item $\unisrv$ obtains: $\pi^A_\mathsf{fin}$ for $Q^A_\mathsf{fin}$. Note that $\mathsf{time}(\pi^A_\mathsf{fin})=\tau^A_\mathsf{fin}$
     \item $\unisrv$ sends $A$: $\pi^A_\mathsf{fin}$
-    \item $A$ computes : $C^A_\mathsf{fin}\gets (T^A_\mathsf{fin},u^A_\mathsf{fin},v^A_\mathsf{fin},\pi^A_\mathsf{fin})$ and adds $C^A_\mathsf{fin}$ as a certified transaction to the ledger of $\mathsf{Tok}_B$. 
+    \item $A$ computes : $C^A_\mathsf{fin}\gets (T^A_\mathsf{fin},u^A_\mathsf{fin},v^A_\mathsf{fin},\pi^A_\mathsf{fin})$ and adds $C^A_\mathsf{fin}$ as a certified transaction to the ledger of $\mathsf{Tok}_B$.
 \end{enumerate}
-$\mathsf{Tok}_B$ is now in the state $(\nu_\mathsf{sig}(\pubkey_A;\cdot),h^3_A)$, where $h^3_A=H(h^2_B,0^\ell)$, which means that $A$ has now full control over $\mathsf{Tok}_B$.  
+$\mathsf{Tok}_B$ is now in the state $(\nu_\mathsf{sig}(\pubkey_A;\cdot),h^3_A)$, where $h^3_A=H(h^2_B,0^\ell)$, which means that $A$ has now full control over $\mathsf{Tok}_B$.
 \medskip
 
-\noindent\textbf{Unsuccessful finalization of $A$}: Party $A$ now controls $\mathsf{Tok}_A$. 
-The last record in the ledger of $\mathsf{Tok}_B$ is a certified transaction $C^B_\mathsf{swap}=(T^B_\mathsf{swap},u^B_\mathsf{swap},v^B_\mathsf{swap},\pi)$ (where $\pi\in\{\pi^B_\mathsf{prf},\pi^B_\mathsf{swap}\}$). In order to transfer the token $\mathsf{Tok}_A$ from the state   
+\noindent\textbf{Unsuccessful finalization of $A$}: Party $A$ now controls $\mathsf{Tok}_A$.
+The last record in the ledger of $\mathsf{Tok}_B$ is a certified transaction $C^B_\mathsf{swap}=(T^B_\mathsf{swap},u^B_\mathsf{swap},v^B_\mathsf{swap},\pi)$ (where $\pi\in\{\pi^B_\mathsf{prf},\pi^B_\mathsf{swap}\}$). In order to transfer the token $\mathsf{Tok}_A$ from the state
 $(\nu_\mathsf{swap}(\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max};\cdot),h^2_A)$
 to the state $(\nu^A_\mathsf{sig}(\pubkey_A;\cdot),h^3_A)$, the party $A$ runs the following protocol that involves communication with $\unisrv$:
 \begin{enumerate}
-    \item $A$ computes: $D^A_\mathsf{fin}\gets (\nu_\mathsf{sig}(\pubkey_A;\cdot), 0^\ell,\bot)$ 
+    \item $A$ computes: $D^A_\mathsf{fin}\gets (\nu_\mathsf{sig}(\pubkey_A;\cdot), 0^\ell,\bot)$
     \item $A$ computes: $v^A_\mathsf{fin}\gets H(D^A_\mathsf{fin})$
     \item $A$ computes: $T^A_\mathsf{fin}\gets (h^2_A, D^A_\mathsf{fin})$
     \item $A$ computes: $\sigma^A_\mathsf{fin}\gets \sig(\prikey_A,H(h^2_A,v^A_\mathsf{fin}))$
-    \item $A$ computes: $u^A_\mathsf{fin}\gets (v^B_\mathsf{swap},\pi,\sigma^A_\mathsf{fin})$
+    \item $A$ computes: $u^A_\mathsf{fin}\gets (v,\pi,\sigma^A_\mathsf{fin})$
     \item $A$ sends $\unisrv$: $Q^A_\mathsf{fin}=(\nu_\mathsf{swap}(\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max};\cdot),h^2_A,v^A_\mathsf{fin},u^A_\mathsf{fin})$
     \item $\unisrv$ computes: $\tau^A_\mathsf{fin}\gets \tau$
     \item $\unisrv$ computes: $k^A_\mathsf{fin}\gets H(\nu_\mathsf{swap}(\pubkey_A,h^1_A,\pubkey_B,h^1_B,\tau_\mathsf{max};\cdot),h^2_A)$
@@ -921,34 +935,34 @@ to the state $(\nu^A_\mathsf{sig}(\pubkey_A;\cdot),h^3_A)$, the party $A$ runs t
     \item $\unisrv$ sets: $R[k^A_\mathsf{fin}]\gets (v^A_\mathsf{fin},u^A_\mathsf{fin})$
     \item $\unisrv$ obtains: $\pi^A_\mathsf{fin}$ for $Q^A_\mathsf{fin}$. Note that $\mathsf{time}(\pi^A_\mathsf{fin})=\tau^A_\mathsf{fin}$
     \item $\unisrv$ sends $A$: $\pi^A_\mathsf{fin}$
-    \item $A$ computes : $C^A_\mathsf{fin}\gets (T^A_\mathsf{fin},u^A_\mathsf{fin},v^A_\mathsf{fin},\pi^A_\mathsf{fin})$ and adds $C^A_\mathsf{fin}$ as a certified transaction to the ledger of $\mathsf{Tok}_B$. 
+    \item $A$ computes : $C^A_\mathsf{fin}\gets (T^A_\mathsf{fin},u^A_\mathsf{fin},v^A_\mathsf{fin},\pi^A_\mathsf{fin})$ and adds $C^A_\mathsf{fin}$ as a certified transaction to the ledger of $\mathsf{Tok}_B$.
 \end{enumerate}
-$\mathsf{Tok}_A$ is now in the state $(\nu_\mathsf{sig}(\pubkey_A;\cdot),h^3_A)$, where $h^3_A=H(h^2_A,0^\ell)$, which means that $A$ has now full control over $\mathsf{Tok}_A$.  
- 
+$\mathsf{Tok}_A$ is now in the state $(\nu_\mathsf{sig}(\pubkey_A;\cdot),h^3_A)$, where $h^3_A=H(h^2_A,0^\ell)$, which means that $A$ has now full control over $\mathsf{Tok}_A$.
+
 \subsection{Atomic Swap with Hashed Timelock and Discussion}
 Assume that $A$ owns $\mathsf{Tok}_A$
-and $B$ owns $\mathsf{Tok}_B$. 
-Atomic swap protocol can also be desinged with the hashed timelock predicate \cite{Herl18,Bitc18a,Bitc18b}  $\nu_\mathsf{htlc}(\pubkey,\pubkey',y,\tau_\mathsf{max};\cdot)$ as follows: 
+and $B$ owns $\mathsf{Tok}_B$.
+Atomic swap protocol can also be designed with the hashed timelock predicate \cite{Herl18,Bitc18a,Bitc18b}  $\nu_\mathsf{htlc}(\pubkey,\pubkey',y,\tau_\mathsf{max};\cdot)$ as follows:
 \begin{enumerate}
 \item $A$ generates a random number $x$, computes $y\gets H(x)$ and sends $y$ to $B$.
-\item $A$ and $B$ agree to two timeouts $\tau_A$ and $\tau_B$, where $\tau_A < \tau_B$ and the difference $\tau_B-\tau_A$ is sufficiently large. 
+\item $A$ and $B$ agree to two timeouts $\tau_A$ and $\tau_B$, where $\tau_A < \tau_B$ and the difference $\tau_B-\tau_A$ is sufficiently large.
 
-\item $A$ transfers $\mathsf{Tok}_A$ to the lock state $S^A_\mathsf{htlc}=(\nu_\mathsf{htlc}(\pubkey_A,\pubkey_B,y,\tau_B;\cdot), h^1_A)$. In this state, $A$ will be able transfer the token back to herself after $\tau_B$ 
-in case $B$ did not transfer the token before $\tau_B$. However, $B$ is not yet able to transfer the token because he does not know the pre-image $x$ of $y$. 
+\item $A$ transfers $\mathsf{Tok}_A$ to the lock state $S^A_\mathsf{htlc}=(\nu_\mathsf{htlc}(\pubkey_A,\pubkey_B,y,\tau_B;\cdot), h^1_A)$. In this state, $A$ will be able transfer the token back to herself after $\tau_B$
+in case $B$ did not transfer the token before $\tau_B$. However, $B$ is not yet able to transfer the token because he does not know the pre-image $x$ of $y$.
 
-\item $B$ checks that $\mathsf{Tok}_A$ is indeed in the state $S^A_\mathsf{htlc}$ and 
+\item $B$ checks that $\mathsf{Tok}_A$ is indeed in the state $S^A_\mathsf{htlc}$ and
 transfers $\mathsf{Tok}_B$ to the state $S^B_\mathsf{htlc}=(\nu_\mathsf{htlc}(\pubkey_B,\pubkey_A,y,\tau_A;\cdot), h^1_B)$. In this state, $A$ is able to transfer $\mathsf{Tok}_B$ to her public key $\pubkey_A$ until the timeout $\tau_A$ and for transferring the token, she has to reveal $x$.
 
 \item $A$ transfers $\mathsf{Tok}_B$ to the state with ownership $\nu_\mathsf{sig}(\pubkey_A;\cdot)$ and reveals $x$, which is included into the unlocking arguments $u=(x,\sigma_A)$.
 
-\item $B$ checks the status of $\mathsf{Tok}_B$ via $\unisrv$ and obtains $x$ as a part of the unlocking arguments. He has now all information but a limited time until $\tau_B$ to transfer $\mathsf{Tok}_A$ to himself. 
+\item $B$ checks the status of $\mathsf{Tok}_B$ via $\unisrv$ and obtains $x$ as a part of the unlocking arguments. He has now all information but a limited time until $\tau_B$ to transfer $\mathsf{Tok}_A$ to himself.
 
 \item $B$ transfers $\mathsf{Tok}_A$ to the state with ownership $\nu_\mathsf{sig}(\pubkey_B;\cdot)$.
 \end{enumerate}
 
-\noindent This protocol has more steps compared to the symmetric atomic swap described above and, moreover, it involves a risk that if $B$ is late to transfer $\mathsf{Tok}_A$ at step 7 of the protocol (which may happen due to circumstances that $B$ does not control, such as network connection failures), then after $\tau_B$, party $A$ controls both tokens. 
+\noindent This protocol has more steps compared to the symmetric atomic swap described above and, moreover, it involves a risk that if $B$ is late to transfer $\mathsf{Tok}_A$ at step 7 of the protocol (which may happen due to circumstances that $B$ does not control, such as network connection failures), then after $\tau_B$, party $A$ controls both tokens.
 
-The conclusion is that the symmetric atomic swap protocol is better suited for the Unicity framework compared to the hashed timelock protocol, although we do not claim that the symmetric protocol would provide a better alternative to hashed timelock in an inter-blockchain setting where there are no reliable common reference services.  
+The conclusion is that the symmetric atomic swap protocol is better suited for the Unicity framework compared to the hashed timelock protocol, although we do not claim that the symmetric protocol would provide a better alternative to hashed timelock in an inter-blockchain setting where there are no reliable common reference services.
 
 
 
@@ -960,14 +974,14 @@ The Unicity Execution Layer. A manuscript (2025)
 \bibitem{Herl18}
 Herlihy, M.:
 Atomic Cross-Chain Swaps.
-In PODC '18: 
+In PODC '18:
 Proceedings of the 2018 ACM Symposium on Principles of Distributed Computing
 pp. 245--254 (2018)
 \textcolor{blue}{\small
 \url{https://doi.org/10.1145/3212734.3212736}}
 
 \bibitem{Bitc18a}
-Atomic cross-chain trading. 
+Atomic cross-chain trading.
 In Bitcoinwiki (2018)\\
 \textcolor{blue}{\small\url{https://en.bitcoin.it/wiki/
 Atomic_cross-chain_trading}}
