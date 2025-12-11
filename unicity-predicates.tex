@@ -1,11 +1,12 @@
 \documentclass{article}
 \usepackage{graphicx} % Required for inserting images
+\usepackage{xcolor}
 \usepackage{pgf-umlsd} % sequence diagram
 \usepackage{amssymb}
 \usepackage{amsmath} % xleftarrow
 \usepackage{enumitem}
 \setlist[itemize]{noitemsep} % compact itemize
-% \setlist[enumerate]{noitemsep}
+\setlist[enumerate]{noitemsep}
 \usepackage{url}
 
 \newtheorem{definition}{Definition}[section]
@@ -83,28 +84,28 @@ In this paper, we present the following generalized concepts:
 \begin{itemize}
 \item \emph{Owner} -- an abstract group of (legal/physical) persons that together control the information necessary to create the next transaction with the token. The information may include private keys.
 \item \emph{Ownership condition} -- a logical condition (predicate) $\predi$.
-\item \emph{Transfer} -- the owner (as a group) presents a bit-string $\sigma$ such that the condition $\predi(\systime, m,\sigma)=1$ holds, where
+\item \emph{Transfer} -- the owner (as a group) presents a bit-string $u$ such that the condition $\predi(\systime, m,u)=1$ holds, where
 $m=H(\sthash,\txhash)$ and $\systime$ is the \emph{system time} (an integer defined by the Unicity service). This means that predicates may also put restrictions on transaction execution time.
 \end{itemize}
-So far, we only have used predicates of type $\predi(\tau,m,\sigma)\equiv \sigver(\pubkey,m,\sigma)$, i.e.
-all predicates $\predi$ are in the form $\sigver(\pubkey,\cdot,\cdot)$.
+So far, we only have used predicates of type $\predi(\tau,m,u)\equiv \sigver(\pubkey,m,\sigma)$, i.e.
+all predicates $\predi$ are in the form $\sigver(\pubkey,\cdot,\cdot)$ and .
 
-The predicates approach is certainly not new and is used already in the Bitcoin blockchain, where $\predi$ is called the \emph{locking script} and $\sigma$ is called the \emph{unlocking script} or \emph{witness}.
+The predicates approach is certainly not new and is used already in the Bitcoin blockchain, where $\predi$ is called the \emph{locking script} and $u$ is called the \emph{unlocking script} or \emph{witness}.
 
-A typical example of a generalized predicate is the \emph{delayed execution} predicate defined by $\predi(\systime,m,\sigma)\equiv \mathsf{dex}_{\pubkey,\systime_0}(\systime,m,\sigma) \equiv (\systime\ge\tau_0)\;\wedge\; \sigver(\pubkey,m,\sigma)=1$, which states that the next transaction can be executed by the owner of the private key of $\pubkey$ not earlier than $\systime_0$. The delayed execution predicate is used in the protocols for inter-blockchain \emph{atomic swaps} between Bitcoin type blockchains.
+A typical example of a generalized predicate is the \emph{delayed execution} predicate defined by $\predi(\systime,m,u)\equiv \mathsf{dex}_{\pubkey,\tau_0}(\systime,m,u) \equiv (\systime\ge\tau_0)\;\wedge\; \sigver(\pubkey,m,u)=1$, which states that the next transaction can be executed by the owner of the private key of $\pubkey$ not earlier than $\tau_0$. The delayed execution predicate is used in the protocols for inter-blockchain \emph{atomic swaps} between Bitcoin type blockchains.
 
 It is a natural question whether the security properties (no double spending, no blocking, no association) will still hold in the Unicity infrastructure if the generalized predicates are in use. We will show shortly that double-spending is indeed impossible in the generalized scheme. However, the non-blocking condition is much less obvious.
 
-The main concern is that arbitrarily chosen predicates do not have guaranteed security properties like the UF-CMA condition for digital signatures. For example, if a user chooses the ownership predicate $\predi(\systime,m,\sigma)\equiv (\sigma^2 - 2\sigma + 1=0)$ then anyone who is able to solve quadratic equations can make the next transfer with the token and hence, the no-blocking condition may seem to be violated. On the other hand, by intentionally  choosing such an ownership condition, the previous owner may indicate that the next abstract owner of the token is the group of all people who can efficiently solve quadratic equations, and in this sense, intuitively, the no blocking condition is not violated.
+The main concern is that arbitrarily chosen predicates do not have guaranteed security properties like the UF-CMA condition for digital signatures. For example, if a user chooses the ownership predicate $\predi(\systime,m,u)\equiv (u^2 - 2u + 1=0)$ then anyone who is able to solve quadratic equations can make the next transfer with the token and hence, the no-blocking condition may seem to be violated. On the other hand, by intentionally choosing such an ownership condition, the previous owner may indicate that the next abstract owner of the token is the group of all people who can efficiently solve quadratic equations, and in this sense, intuitively, the no blocking condition is not violated.
 
 The predicates can also be chosen so that they cannot be solved (satisfied) in principle, i.e. they are logically inconsistent. For example
-$\predi(\systime,m,\sigma)\equiv (\sigma^2 + 2\sigma + 1=0)$, where $\sigma$
+$\predi(\systime,m,u)\equiv (u^2 + 2u + 1=0)$, where $u$
 is required to be real number, cannot be satisfied.
 
 Another (less trivial) example of improper use of predicates is when a user applies one-time signature scheme as a many-times signature scheme. In this case, security-critical information leaks gradually so that an adversary, having triples
-$(\systime_1,m_1,\sigma_1),\ldots,(\systime_n,m_n,\sigma_n)$ (so that $\predi(\systime_i,m_i,\sigma_i)=1$), can construct a new triple $(\systime,m,\sigma)$ such that $\predi(\systime,m,\sigma)=1$ and $m\not\in\{m_1,\ldots,m_n\}$.
+$(\systime_1,m_1,u_1),\ldots,(\systime_n,m_n,u_n)$ (so that $\predi(\systime_i,m_i,u_i)=1$), can construct a new triple $(\systime,m,u)$ such that $\predi(\systime,m,u)=1$ and $m\not\in\{m_1,\ldots,m_n\}$.
 
-Therefore, the precise mathematical formulation of the no-blocking condition -- \emph{only the owner of the private key of $\pubkey$ can block the state $S=(\pubkey,\sthash)$} -- must be revisited. We will redefine the no-blocking condition as follows -- \emph{only those who can solve the predicate $\predi$ can block the state $S=(\predi,\sthash)$}, where by solving $\predi$ we mean finding, for a given $m$, a pair $(\systime,\sigma)$ so that $\predi(\systime,m,\sigma)=1$.
+Therefore, the precise mathematical formulation of the no-blocking condition -- \emph{only the owner of the private key of $\pubkey$ can block the state $S=(\pubkey,\sthash)$} -- must be revisited. We will redefine the no-blocking condition as follows -- \emph{only those who can solve the predicate $\predi$ can block the state $S=(\predi,\sthash)$}, where by solving $\predi$ we mean finding, for a given $m$, a pair $(\systime,u)$ so that $\predi(\systime,m,u)=1$.
 We will make this security definition precise and prove that it holds in the Unicity infrastructure. Intuitively, this means that undesired blocking can happen only because of the weakness of the user-chosen predicates and never because of the structural weakness of the Unicity infrastructure itself.
 
 The paper is organized as follows. In Section~\ref{sec:predicates} we define the predicates and give some examples. In Section~\ref{sec:infra},
@@ -146,7 +147,7 @@ $\mathcal{D}_\mathsf{name}$ is the name-dependent part. Here, $\mathbb{T}$ is th
 \end{itemize}
 \medskip
 
-\noindent\emph{System time} $\tau$ is a non-negative integer hold by $\unisrv$ and incremented when $R$ is certified by the BFT layer.
+\noindent\emph{System time} $\tau$ is a non-negative integer held by $\unisrv$ and incremented when $R$ is certified by the BFT layer.
 System time can be extracted from inclusion proofs by $\tau'\gets \mathsf{time}(\pi)$, where $\tau'$ is the value of system time when $\pi$ was created.
 \medskip
 
@@ -199,7 +200,7 @@ $\nu_\mathsf{msig}(\pubkey_1,\ldots,\pubkey_n;\cdot)$ with a list $\pubkey_1,\ld
 The threshold signature predicate
 $\nu_\mathsf{tsig}(k,\pubkey_1,\ldots,\pubkey_n;\cdot)$ with signature threshold $k\in\{1,\ldots,n\}$ and a list $\pubkey_1,\ldots,\pubkey_n$ of $n$ public keys as parameters is equivalent to verifying $k$ digital signatures with different public keys (in the list) on the same message hash $m$. \medskip
 
-\noindent\textbf{Name-specific arguments}: $u=((\sigma_1,j_1),\ldots,(\sigma_k,j_k))$ contain a list of pairs $(\sigma_i,j_i)$, where $j_i\in\{1,\ldots,k\}$ is the index of the public key that is supposed to be used for verifying $\sigma_i$. \medskip
+\noindent\textbf{Name-specific arguments}: $u=((\sigma_1,j_1),\ldots,(\sigma_k,j_k))$ contain a list of pairs $(\sigma_i,j_i)$, where $j_i\in\{1,\ldots,n\}$ is the index of the public key that is supposed to be used for verifying $\sigma_i$. \medskip
 
 \noindent\textbf{Definition}: $\nu_\mathsf{tsig}(k,\pubkey_1,\ldots,\pubkey_n;\tau,m,u)=1$ iff:
 \begin{itemize}
@@ -210,7 +211,7 @@ The last requirement is necessary because otherwise the predicate can be satisfi
 
 \subsubsection{Hashed Timelock Predicate}
 The hashed timelock predicate
-$\nu_\mathsf{htlc}(\pubkey,\pubkey',y,\tau_\mathsf{max};\cdot)$ with two public keys $\pubkey,\pubkey'$, a hash value $y\in\mathbb{H}$, and a timeout $\tau_\mathsf{max}\in\mathbb{T}$ as parameters is useful for atomic swaps, potentially between different blockchains \cite{Herl18,Bitc18a,Bitc18b}. We describe this predicate just as an example because in the swap protocol described in this paper uses different predicates. \medskip
+$\nu_\mathsf{htlc}(\pubkey,\pubkey',y,\tau_\mathsf{max};\cdot)$ with two public keys $\pubkey,\pubkey'$, a hash value $y\in\mathbb{H}$, and a timeout $\tau_\mathsf{max}\in\mathbb{T}$ as parameters is useful for atomic swaps, potentially between different blockchains \cite{Herl18,Bitc18a,Bitc18b}. We describe this predicate just as an example because the swap protocol described in this paper uses different predicates. \medskip
 
 \noindent\textbf{Name-specific arguments}: $u=(x,\sigma)$, where $x$ is a hash value (a pre-image of $y$) and $\sigma$ is a a digital signature.\medskip
 
@@ -277,13 +278,13 @@ We assume that the inclusion proofs $\pinc$ can be verified by any party using a
 \begin{equation}\label{eq:eqtx-pred}
 \univer(k, v; \pinc) = \univer(k, v'; \pinc') = 1 \quad \Rightarrow \quad v =v' \enspace.
 \end{equation}
-\item If $R[H(\predi, \sthash)] = \txhash$ after a request $\pinc \gets \unisrv(\predi, \sthash, \txhash, \sigma)$ to the Unicity Service, then $\univer(H(\predi, \sthash), \txhash, \pinc) = 1$.
+\item If $R[H(\predi, \sthash)] = \txhash$ after a request $\pinc \gets \unisrv(\predi, \sthash, \txhash, u)$ to the Unicity Service, then $\univer(H(\predi, \sthash), \txhash, \pinc) = 1$.
 \item If a request $\pinc\gets\unisrv(Q)$ was processed in the state $S=(R,\systime)$ that changes $R[H(\predi, \sthash)]$ from $\bot$ to $\neq\bot$, then $\exttime(\pinc)=\systime$.
 \end{itemize}
 
 \subsection{Transactions with a Token}
 
-Every token has an abstract owner $A$ represented by a predicate $\predi$. We will call the pair $(\predi, \auxd)$ the \emph{state} of the token and $\sthash = H(\predi, \auxd)$ the state hash of the token.
+Every token has a \emph{state hash} $\sthash$ and an abstract owner $A$ represented by a predicate $\predi$. The state hash $\sthash$ is initialized by the \emph{mint transaction} of the token. We will call the pair $(\predi, \sthash)$ the \emph{state} of the token.
 
 The transaction payload (before certifying the transaction) with the token is a pair
 $T = (\sthash, D)$, where:
@@ -293,7 +294,7 @@ $T = (\sthash, D)$, where:
 \begin{itemize}
 \item $\predi'$: the predicate of the next abstract owner,
 \item $x$: a uniformly chosen random string $x\gets\{0,1\}^\ell$,
-\item $\auxd'$: other data for the next state.
+\item $\auxd'$: auxiliary data for the next state.
 \end{itemize}
 \end{enumerate}
 
@@ -305,28 +306,28 @@ The pair $(\predi', \auxd')$ defines the next state of the token after executing
 \item $(\txhash,d) \gets \commit(H(D))$ is computed using a perfectly hiding commitment scheme $(\setup,\commit,\open)$.
 The commitment $\txhash$ is called the \emph{transaction data hash}.
 \item The hash value $h_T = H(\sthash, \txhash)$ is computed.
-\item A solution $\sigma$ is created such that $\predi(\systime_\mathsf{exp}, h_T, \sigma) = 1$ for an expected\footnote{In order to avoid failed certification calls, users could (1) query the current time from $\unisrv$ to
+\item A solution $u$ is created such that $\predi(\systime_\mathsf{exp}, h_T, u) = 1$ for an expected\footnote{In order to avoid failed certification calls, users could (1) query the current time from $\unisrv$ to
   minimize the difference, and (2) prioritize safety in predicate design. For example, the delayed
   execution predicate $\mathsf{dex}_{\pubkey,\tau_0}$ from the introduction uses an inequality
   $\systime \geq \tau_0$, which remains satisfiable for all future times.} value $\systime_\mathsf{exp}$ of system time.
-\item The query $Q = (\predi,\sthash,\txhash,\sigma)$ is created.
+\item The query $Q = (\predi,\sthash,\txhash,u)$ is created.
 \item $\unisrv$ is called to obtain $\pi\gets \unisrv(Q)$.
-\item The certified transaction $(T,\sigma,\txhash,d,\pi)$ is formed.
+\item The certified transaction $(T,u,\txhash,d,\pi)$ is formed.
 \end{enumerate}
 
-\noindent\textbf{Verifying a certified transaction} A certified transaction $(T,\sigma,\txhash,d,\pi)$ is verified in the state $(\predi,h)$ by the following algorithm:\medskip
+\noindent\textbf{Verifying a certified transaction} A certified transaction $(T,u,\txhash,d,\pi)$ is verified in the state $(\predi,h)$ by the following algorithm:\medskip
 
-\noindent $\certver(T,\sigma,\txhash,d,\pi;\predi,h)$:
+\noindent $\certver(T,u,\txhash,d,\pi;\predi,h)$:
 If at least one of the following checks fail, return 0, otherwise return 1:
 \begin{enumerate}
 \item $T.\sthash=h$;
 \item $\open(\txhash,d)=H(T.D)$;
-\item $\predi(\exttime(\pi), H(\sthash,\txhash),\sigma)=1$;
+\item $\predi(\exttime(\pi), H(\sthash,\txhash),u)=1$;
 \item $\univer(H(\predi,T.\sthash),\txhash,\pi)=1$.
 \end{enumerate}
 
 \begin{definition}[certification in a state]\label{de:certstate-pred}
-A tuple $(T,\sigma,\txhash,d,\pi)$ is said to be \emph{certified in state} $(\predi,h)$ iff $\certver(T,\sigma,\txhash,d,\pi;\predi,h)=1$.
+A tuple $(T,u,\txhash,d,\pi)$ is said to be \emph{certified in state} $(\predi,h)$ iff $\certver(T,u,\txhash,d,\pi;\predi,h)=1$.
 \end{definition}
 
 Mint transactions are the same as in the signature-based ownership \cite{BTLR25}, i.e. they do not use generalized predicates.
@@ -335,11 +336,11 @@ Mint transactions are the same as in the signature-based ownership \cite{BTLR25}
 
 A \emph{token ledger} is a sequence
 \[
-(T_0, \sigma_0, \pi_0; h^1_\mathsf{st}), (T_1, \sigma_1,\txhash^1,d_1,\pi_1; h^2_\mathsf{st}), \ldots, (T_n, \sigma_n, \txhash^n, d_n,\pi_n; h^{n+1}_\mathsf{st})
+(T_0, u_0, \pi_0; h^1_\mathsf{st}), (T_1, u_1,\txhash^1,d_1,\pi_1; h^2_\mathsf{st}), \ldots, (T_n, u_n, \txhash^n, d_n,\pi_n; h^{n+1}_\mathsf{st})
 \]
-where $(T_0, \sigma_0, \pi_0)$ is a certified mint transaction and for every index $i=1,\ldots, n$:
+where $(T_0, u_0, \pi_0)$ is a certified mint transaction and for every index $i=1,\ldots, n$:
 \begin{enumerate}
-\item $(T_{i}, \sigma_{i}, \txhash^i,d_i, \pi_{i})$ is a certified transaction in the state $(T_{i-1}.D.\predi', h^{i}_\mathsf{st})$;
+\item $(T_{i}, u_{i}, \txhash^i,d_i, \pi_{i})$ is a certified transaction in the state $(T_{i-1}.D.\predi', h^{i}_\mathsf{st})$;
 \item $h^{i}_\mathsf{st}=H(h^{i-1}_\mathsf{st},x_{i-1})$ where $x_{i-1} =T_{i-1}.D.x$.
 \end{enumerate}
 
@@ -351,7 +352,7 @@ Consider a token with the state $S = (\predi, \auxd)$. The transfer protocol ens
 Only one certified transaction can be created in the state $S$.
 \item \emph{No association}: the Unicity service is unable to identify the transactions with the same token.
 \item \emph{No blocking}:
-Only the owner of the private key of $\predi$ can block the state $S = (\predi, \auxd)$ if it was not blocked before.
+Only those who can solve the predicate $\predi$ can block the state $S = (\predi, \auxd)$ if it was not blocked before.
 \end{itemize}
 
 \noindent In this section, we present security proofs for all three properties. The proofs of no double-spending and no association are very similar to the proofs in the paper \cite{BTLR25}. The no blocking property
@@ -363,15 +364,15 @@ A double-spending adversary uses $\unisrv$ as an oracle. \medskip
 
 \noindent\textbf{Double-spending scenario} involves the following steps:
 \begin{enumerate}
-\item $(T,\sigma,\txhash,d,\pinc),(T',\sigma',\txhash',d',\pinc'),(\predi,h)\gets A^\unisrv$.
+\item $(T,u,\txhash,d,\pinc),(T',u',\txhash',d',\pinc'),(\predi,h)\gets A^\unisrv$.
 \item The attack is successful iff $T\neq T'$ and
 \begin{equation}\label{eq:dscond-pred}
-\certver(T,\sigma,\txhash,d,\pinc;\predi,h)=\certver(T',\sigma',\txhash',d',\pinc';\predi,h)=1 \enspace.
+\certver(T,u,\txhash,d,\pinc;\predi,h)=\certver(T',u',\txhash',d',\pinc';\predi,h)=1 \enspace.
 \end{equation}
 \end{enumerate}
 
 \begin{definition}[Double-spending security]
-The Unicity Service is said to be $S$-secure against double-spending if it has $S$ as a security profile in the double-spending scenario.
+The Unicity Service is said to be $S$-secure against double-spending if it has $S$ as a security profile\footnote{The concept of security profiles is defined in \cite{BTLR25}.} in the double-spending scenario.
 \end{definition}
 
 \noindent\textbf{Analysis}: If the adversary is successful, then
@@ -400,13 +401,13 @@ Let $A$ be a $t$-time double-spending adversary that succeeds with probability $
 \begin{itemize}
 \item $A_\mathsf{coll}$ proceeds as follows:
 \begin{enumerate}
-\item Simulate $(T,\sigma,\txhash,d,\pinc),(T',\sigma',\txhash',d',\pinc'),(\predi,h)\gets A^\unisrv$ by maintaining its own version of $\unisrv$.
+\item Simulate $(T,u,\txhash,d,\pinc),(T',u',\txhash',d',\pinc'),(\predi,h)\gets A^\unisrv$ by maintaining its own version of $\unisrv$.
 \item Output the pair $(T.D,T'.D)$.
 \end{enumerate}
-The computational overhead function of $A_\mathsf{coll}$ is $\tau_\mathsf{coll}(t) = (t_\mathsf{ver}+1) \cdot t$, because simulating a $\unisrv$ query requires one signature verification and the number of calls is limited by the running time $t$ of $A$.
+The computational overhead function of $A_\mathsf{coll}$ is $\tau_\mathsf{coll}(t) = (t_\mathsf{ver}+1) \cdot t$, because simulating a $\unisrv$ query requires one predicate verification and the number of calls is limited by the running time $t$ of $A$.
 \item $A_\mathsf{com}$ proceeds as follows:
 \begin{enumerate}
-\item Simulate $(T,\sigma,\txhash,d,\pinc),(T',\sigma',\txhash',d',\pinc'),(\predi,h)\gets A^\unisrv$ by maintaining its own version of $\unisrv$.
+\item Simulate $(T,u,\txhash,d,\pinc),(T',u',\txhash',d',\pinc'),(\predi,h)\gets A^\unisrv$ by maintaining its own version of $\unisrv$.
 \item Output the triple $(\txhash,d,d')$.
 \end{enumerate}
 The computational overhead function of $A_\mathsf{com}$ is the same as
@@ -431,7 +432,7 @@ The Association adversary $A=(A_1,A_2)$ is two-stage. \medskip
 \item $(\sthash, \predi', \auxd', a)\gets A_1$.
 \item $x\gets \{0,1\}^\ell$.
 \item $\sthash'\gets H(\sthash,x)$.
-\item $\txhash\gets\commitc(H(\predi',x,\auxd')))$.
+\item $\txhash\gets\commitc(H(\predi',x,\auxd')))$.  \footnote{We denote by $\commitc(\param,m)$ the function that computes $(c,d)\gets \commit(\param; m)$ and returns only $c$.}
 \item $x'\gets A_2(a; \sthash',\txhash)$.
 \item The attack is successful iff $\sthash\in\{0,1\}^k$, $x'\in\{0,1\}^\ell$, and $H(\sthash,x')=\sthash'$. The success $\epsilon$ of $A$ is the probability that the attack is successful.
 \end{enumerate}
@@ -442,7 +443,7 @@ The Unicity Service is said to be $S$-secure against association if it has $S$ a
 
 
 \begin{theorem}
-If the hash function is $S$-secure $(k,\ell)$-one-way and the commitment scheme is perfectly hiding, then the Unicity Service is $S_\mathsf{assoc}$-secure against association, where $S_\mathsf{assoc}(\epsilon)= S(\epsilon) - t_\mathsf{sm} - t_\mathsf{hash} - t_\mathsf{com}$, where
+If the hash function is $S$-secure $(k,\ell)$-one-way\footnote{Defined in \cite{BTLR25}.} and the commitment scheme is perfectly hiding, then the Unicity Service is $S_\mathsf{assoc}$-secure against association, where $S_\mathsf{assoc}(\epsilon)= S(\epsilon) - t_\mathsf{sm} - t_\mathsf{hash} - t_\mathsf{com}$, where
 $t_\mathsf{sm}$, $t_\mathsf{hash}$, $t_\mathsf{com}$ are the random sampling time, the hashing time, and the commitment computation time, respectively.
 \end{theorem}
 \begin{proof}
@@ -459,7 +460,7 @@ Let $A=(A_1,A_2)$ be a $t$-time adversary that succeeds in the association scena
 %For any fixed value of $L=(\sthash, \pubkey', \auxd', a)$, due to the perfect hiding, the probability distributions of $\txhash$ and $\txhash'$ are equal and due to Lemma~\ref{le:outputindependence} (by taking $g(x)=H(\pubkey',x,\auxd'))$), the random variables $\txhash$ and $\txhash'$ are both independent of $x$. This means that the arguments $(\sthash',\txhash)$ and $(\sthash',\txhash')$ of $A(a;\cdot)$ are equal
 %in both scenarios, and hence $A$ succeeds in the modified scenario with probability $\epsilon$. We construct an adversary $A'=(A'_1,A'_2)$ as follows:
 
-\noindent For any fixed value of $L=(\sthash, \predi', \auxd', a)$, due to perfect hiding, commitments $\txhash=\commitc(H(\predi',x,\auxd'))$ and $\txhash'=\commitc(H(\predi',x'',\auxd'))$ have equal probability distributions. Moreover, by the Output Independence Lemma \cite{BTLR25} (with $g(x)=H(\predi',x,\auxd')$), the random variables $x$ and $\txhash=\commitc(H(\predi',x,\auxd'))$ are independent.
+\noindent For any fixed value of $L=(\sthash, \predi', \auxd', a)$, due to perfect hiding, commitments $\txhash=\commitc(H(\predi',x,\auxd'))$ and $\txhash'=\commitc(H(\predi',x'',\auxd'))$ have equal probability distributions. Moreover, by the Output Independence Lemma\footnote{Defined in \cite{BTLR25}.} (with $g(x)=H(\predi',x,\auxd')$), the random variables $x$ and $\txhash=\commitc(H(\predi',x,\auxd'))$ are independent.
 
 Since $x''$ and $x$ are independent, the commitment $\txhash'=\commitc(H(\predi',x'',\auxd'))$ is independent of both $x$ and $\sthash'=H(\sthash,x)$. Therefore, the joint distributions of $(\sthash',\txhash)$ and $(\sthash',\txhash')$ are equal, and hence $A$ succeeds in the modified scenario with probability $\epsilon$. We construct an adversary $A'=(A'_1,A'_2)$ as follows:
 \begin{itemize}
@@ -489,7 +490,7 @@ is a security profile of the Unicity service against association.
 By a predicate family we mean a pair $(\prgen,\prsig)$ of algorithms so that:
 \begin{itemize}
 \item $(\prikey,\predi)\gets\prgen$ generates a private key $\prikey$ and a predicate $\predi$.
-\item $\prsig(\prikey,m)$ solves the predicate for $m$, i.e. either $\bot\gets\prsig(\prikey,m)$ (the solver gives up) or $(\systime,\sigma)\gets\prsig(\prikey,m)$ such that $\predi(\systime,m,\sigma)=1$.
+\item $\prsig(\prikey,m)$ solves the predicate for $m$, i.e. either $\bot\gets\prsig(\prikey,m)$ (the solver gives up) or $(\systime,u)\gets\prsig(\prikey,m)$ such that $\predi(\systime,m,u)=1$.
 \end{itemize}
 The case $\bot\gets\prsig(\prikey,m)$ is necessary because the predicates can potentially be chosen so that they cannot be satisfied.
 
@@ -500,15 +501,15 @@ that uses (initially empty) dictionaries $\prikey[\iota]$, $\predi[\iota]$ as th
 \item $\mathcal{O}(\mathsf{gen};\iota)$ -- a generation query that returns $\bot$ if $\predi[\iota]\neq \bot$, and otherwise generates $(\prikey,\predi)\gets\prgen$, sets $\prikey[\iota]\gets \prikey$, $\predi[\iota]\gets\predi$, and
 returns $\predi$.
 \item $\mathcal{O}(\mathsf{solve};\iota,m)$ -- a solving query that returns
-$\bot$ if either $\predi[\iota]=\bot$ or $\prsig(\prikey[\iota],m)=\bot$, and otherwise, if $(\systime,\sigma)\gets \prsig(\prikey[\iota],m)$, it returns $(\systime,\sigma)$.
+$\bot$ if either $\predi[\iota]=\bot$ or $\prsig(\prikey[\iota],m)=\bot$, and otherwise, if $(\systime,u)\gets \prsig(\prikey[\iota],m)$, it returns $(\systime,u)$.
 \end{itemize}
 The predicate solving scenario involves the following steps:
 \begin{enumerate}
-\item $(\iota,\systime,m,\sigma)\gets A_\mathsf{solve}^\mathcal{O}$
+\item $(\iota,\systime,m,u)\gets A_\mathsf{solve}^\mathcal{O}$
 \item The attack is successful if:
 \begin{itemize}
 \item[a)] $\predi[\iota]\neq\bot$, i.e. the query $\mathcal{O}(\mathsf{gen};\iota)$ was made by $A_\mathsf{solve}^\mathcal{O}$.
-\item[b)] $\predi[\iota](\systime,m,\sigma)=1$
+\item[b)] $\predi[\iota](\systime,m,u)=1$
 \item[c)] All queries of the form $\mathcal{O}(\mathsf{solve};\iota,m)$ made by  $A_\mathsf{solve}^\mathcal{O}$ (if there were any) were answered with $\bot$.
 \end{itemize}
 \end{enumerate}
@@ -521,9 +522,9 @@ The predicate solving scenario involves the following steps:
 \item $\mathsf{TS}(\mathsf{gen};\iota)$ -- a generation query that returns $\bot$ if $\prikey[\iota]\neq \bot$, and otherwise generates $(\prikey,\predi)\gets\prgen$, sets $\prikey[\iota]\gets \prikey$, $\predi[\iota]\gets\predi$, and
 returns $\predi$.
 \item $\mathsf{TS}(\mathsf{solve};\iota,h,D)$ -- a solving query that returns
-$\bot$ if either $\prikey[\iota]=\bot$ or $\prsig(\prikey[\iota],H(h,\txhash))=\bot$, and otherwise, returns $(\systime,\sigma, \txhash, d)$, where
+$\bot$ if either $\prikey[\iota]=\bot$ or $\prsig(\prikey[\iota],H(h,\txhash))=\bot$, and otherwise, returns $(\systime,u, \txhash, d)$, where
 $(\txhash, d)\gets \commit(H(D))$ and
-$(\systime,\sigma)\gets \prsig(\prikey[\iota],H(h,\txhash))$.
+$(\systime,u)\gets \prsig(\prikey[\iota],H(h,\txhash))$.
 \end{itemize}
 \end{enumerate}
 
@@ -539,7 +540,7 @@ $(\systime,\sigma)\gets \prsig(\prikey[\iota],H(h,\txhash))$.
 The success $\epsilon$ of $A$ is the probability that the attack is successful
 \end{enumerate}
 
-\noindent Note that if such a query was made, then the request $Q=(\predi[\iota],\sthash, \txhash,\sigma)$ to $\mathsf{US}$ at system time $\systime$ will trivially ensure $R[H(\predi[\iota],h_\mathsf{st})]\neq\bot$.
+\noindent Note that if such a query was made, then the request $Q=(\predi[\iota],\sthash, \txhash,u)$ to $\mathsf{US}$ at system time $\systime$ will trivially ensure $R[H(\predi[\iota],\sthash)]\neq\bot$.
 Note that the adversary can set the system time appropriately before the request $Q$. Hence, this is excluded by the security condition. \medskip
 
 \begin{definition}[blocking security]
@@ -548,14 +549,14 @@ The Unicity Service is said to be $S$-secure against blocking if it has $S$ as a
 
 \noindent\textbf{Analysis}: The adversary $A$ can be successful in the following cases:
 \begin{itemize}
-\item[a)] A request $Q=(\predi', h'_\mathsf{st}, h_\mathsf{tx}, \sigma)$ with $(\predi',h'_\mathsf{st})\neq (\predi[\iota],h_\mathsf{st})$ to $\mathsf{US}$ enforces $R[H(\predi[\iota], h_\mathsf{st})]\neq\bot$, which means that  $H(\predi[\iota],h_\mathsf{st})=H(\predi', h'_\mathsf{st})$ and hence, a collision for $H$ was found.
-\item[b)] A request $Q=(\predi[\iota], h_\mathsf{st}, h_\mathsf{tx}, \sigma)$ to $\mathsf{US}$ enforces $R[H(\predi[\iota], h_\mathsf{st})]\neq\bot$, which implies $\predi[\iota](\systime, H(h_\mathsf{st},h_\mathsf{tx}), \sigma)=1$ from the description of $\mathsf{US}$. Then we have two possibilities:
+\item[a)] A request $Q=(\predi', h'_\mathsf{st}, h_\mathsf{tx}, u)$ with $(\predi',h'_\mathsf{st})\neq (\predi[\iota],\sthash)$ to $\mathsf{US}$ enforces $R[H(\predi[\iota], \sthash)]\neq\bot$, which means that  $H(\predi[\iota],\sthash)=H(\predi', h'_\mathsf{st})$ and hence, a collision for $H$ was found.
+\item[b)] A request $Q=(\predi[\iota], \sthash, h_\mathsf{tx}, u)$ to $\mathsf{US}$ enforces $R[H(\predi[\iota], \sthash)]\neq\bot$, which implies $\predi[\iota](\systime, H(\sthash,h_\mathsf{tx}), u)=1$ from the description of $\mathsf{US}$. Then we have two possibilities:
 \begin{itemize}
-\item[b1)] A query $(\systime',\sigma', \txhash', d)\gets\mathsf{TS}(\mathsf{solve};\iota,\sthash',D)$ was made such that the equality
-$H(\sthash',\txhash')=H(\sthash,\txhash)$ holds. From the success condition of $A$ it follows that  $\sthash'\neq h_\mathsf{st}$ and we have a collision for $H$.
-\item[b2)] If no queries $(\systime',\sigma', \txhash', d)\gets\mathsf{TS}(\mathsf{solve};\iota,\sthash',D)$ were made with $H(\sthash',\txhash')=H(\sthash,\txhash)$ then this means that $A$ was able to
-solve the predicate family, i.e. for $m=H(\sthash,\txhash)$ finds $\tau,\sigma$
-so that $\predi[\iota](\tau,m,\sigma)=1$ without using the predicate solving functionality.
+\item[b1)] A query $(\systime',u', \txhash', d)\gets\mathsf{TS}(\mathsf{solve};\iota,\sthash',D)$ was made such that the equality
+$H(\sthash',\txhash')=H(\sthash,\txhash)$ holds. From the success condition of $A$ it follows that  $\sthash'\neq \sthash$ and we have a collision for $H$.
+\item[b2)] If no queries $(\systime',u', \txhash', d)\gets\mathsf{TS}(\mathsf{solve};\iota,\sthash',D)$ were made with $H(\sthash',\txhash')=H(\sthash,\txhash)$ then this means that $A$ was able to
+solve the predicate family, i.e. for $m=H(\sthash,\txhash)$ finds $\tau,u$
+so that $\predi[\iota](\tau,m,u)=1$ without using the predicate solving functionality.
 \end{itemize}
 \end{itemize}
 
@@ -573,7 +574,7 @@ solver $A^\mathcal{O}_\mathsf{solve}$ as follows:
 \begin{itemize}
 \item $A_\mathsf{coll}$ proceeds as follows:
  \begin{enumerate}
-   \item Simulates $(\iota,h_\mathsf{st})\gets A^{\mathsf{US},\mathsf{TS}}$ and records all the oracle queries.
+   \item Simulates $(\iota,\sthash)\gets A^{\mathsf{US},\mathsf{TS}}$ and records all the oracle queries.
    \item If $A^{\mathsf{US},\mathsf{TS}}$ was successful and either the case a) or b1) occurs, $A_\mathsf{coll}$ outputs the collision that is guaranteed in this case.
  \end{enumerate}
 The oracles are simulated as follows:
@@ -587,11 +588,11 @@ $t_\mathsf{sig}$ is the predicate solving time (for $\mathsf{TS}(\mathsf{solve};
 
 \item $A_\mathsf{solve}^{\mathcal{O}}$ proceeds as follows:
  \begin{enumerate}
-  \item Simulates $(\iota,h_\mathsf{st})\gets A^{\mathsf{US},\mathsf{TS}}$ and records all the oracle queries.
-  \item If $A^{\mathsf{US},\mathsf{TS}}$ was successful and b2) occurs and $Q=(\predi', h_\mathsf{st}, h_\mathsf{tx}, \sigma)$ was the request that enforces $R[H(\predi[\iota], h_\mathsf{st})]\neq\bot$ at system time $\tau$ then:
+  \item Simulates $(\iota,\sthash)\gets A^{\mathsf{US},\mathsf{TS}}$ and records all the oracle queries.
+  \item If $A^{\mathsf{US},\mathsf{TS}}$ was successful and b2) occurs and $Q=(\predi', \sthash, h_\mathsf{tx}, u)$ was the request that enforces $R[H(\predi[\iota], \sthash)]\neq\bot$ at system time $\tau$ then:
   \begin{enumerate}
-    \item[3.] $m\gets H(h_\mathsf{st}, h_\mathsf{tx})$.
-    \item[4.] Output $(\iota,\tau,m,\sigma)$.
+    \item[3.] $m\gets H(\sthash, h_\mathsf{tx})$.
+    \item[4.] Output $(\iota,\tau,m,u)$.
   \end{enumerate}
  \end{enumerate}
 The oracles are simulated as follows:
@@ -601,16 +602,16 @@ The oracles are simulated as follows:
   \begin{itemize}
       \item $\mathsf{TS}(\mathsf{gen};\iota)$ -- If $\predi[\iota]\neq \bot$ then return $\bot$. Otherwise, call $\predi[\iota]
       \gets\mathcal{O}(\mathsf{gen};\iota)$ and return $\predi[\iota]$.
-      \item $\mathsf{TS}(\mathsf{solve};\iota,h,D)$ -- If $\predi[\iota]=\bot$ then return $\bot$. Otherwise, compute $(\txhash,d)\gets\commit(H(D))$, call $v\gets \mathcal{O}(\mathsf{solve};\iota, H(h,\txhash))$ and return $v$. Note that either $v=\bot$ or $v=(\systime,\sigma)$.
+      \item $\mathsf{TS}(\mathsf{solve};\iota,h,D)$ -- If $\predi[\iota]=\bot$ then return $\bot$. Otherwise, compute $(\txhash,d)\gets\commit(H(D))$, call $v\gets \mathcal{O}(\mathsf{solve};\iota, H(h,\txhash))$ and return $v$. Note that either $v=\bot$ or $v=(\systime,u)$.
   \end{itemize}
  \end{itemize}
  As the request $Q$ was accepted by $\unisrv$ and it changes $R[H(\predi[\iota],\sthash)]$, we have $\predi'=\predi[\iota]$ (description of $\unisrv$) and
- $\predi[\iota](\systime,m,\sigma)=1$. Note that in the case b2) the request $\mathsf{TS}(\mathsf{solve}; \iota, \sthash,D)$ with $\open(\txhash,d)=H(D)$ was never made which also means that the query $\mathcal{O}(\mathsf{solve};\iota,m)$ with $m=H(\sthash,\txhash)$ was never made, and hence,
- $A_\mathsf{solve}^{\mathcal{O}}$ is successful in the predicate solving scenario. The computational time overhead function for the construction of $A_\mathsf{solve}^\mathcal{O}$ is
+ $\predi[\iota](\systime,m,u)=1$. Note that in the case b2) the request $\mathsf{TS}(\mathsf{solve}; \iota, \sthash,D)$ with $\open(\txhash,d)=H(D)$ was never made which also means that the query $\mathcal{O}(\mathsf{solve};\iota,m)$ with $m=H(\sthash,\txhash)$ was never made, and hence,
+ $A_\mathsf{solve}^{\mathcal{O}}$ is successful in the predicate solving scenario. The computational time overhead function for the construction of $A_\mathsf{solve}^\mathcal{O}$, on the assumption that $t\ge 1$, is
  \[
  \tau_\mathsf{solve}(t) = \max\{t_\mathsf{ver},t_\mathsf{com}\}\cdot t + t_\mathsf{hash}\le \max\{t_\mathsf{ver},t_\mathsf{com},t_\mathsf{hash}\}\cdot t\]
-if $t\ge 1$, where
-$t_\mathsf{ver}$ is the signature verification time (for $\unisrv$ queries), $t_\mathsf{com}$ is the commitment time (for $\mathsf{TS}(\mathsf{solve};\cdot)$-queries) and
+where
+$t_\mathsf{ver}$ is the predicate verification time (for $\unisrv$ queries), $t_\mathsf{com}$ is the commitment time (for $\mathsf{TS}(\mathsf{solve};\cdot)$-queries) and
 $t_\mathsf{hash}$ is the hash computation time (for output).
 \end{itemize}
 If $A$ succeeds, then either $A_\mathsf{coll}$ or $A_\mathsf{solve}^\mathcal{O}$ succeeds and hence $\epsilon \le \epsilon_\mathsf{coll} + \epsilon_\mathsf{solve}$.
@@ -752,7 +753,7 @@ The value of the predicate is defined as follows:\medskip
 \noindent $\nu_\mathsf{swap}(\pubkey,h,\pubkey',h',\tau_\mathsf{max};\tau,m,v,\pi,\sigma) = 1$ iff:
 \begin{itemize}
 \item[1.] $f_\mathsf{inc}(H(S'_\mathsf{prep}),v,\pi)=1$ for $S'_\mathsf{prep}=(\nu_\mathsf{prep}(\pubkey';\cdot),h')$
-\item[2.] For $v'_\mathsf{swap}=H(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max}),0^\ell,\bot)$ either (a) or (b):
+\item[2.] For $v'_\mathsf{swap}=H(\nu_\mathsf{swap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max};\cdot),0^\ell,\bot)$ either (a) or (b):
     \begin{itemize}
     \item[(a)] $\sigver(\pubkey',m,\sigma)\!=\!1 \wedge v=v'_\mathsf{swap}$
     \item[(b)] $\sigver(\pubkey,m,\sigma)\!=\!1 \wedge v\neq v'_\mathsf{swap}
@@ -761,7 +762,7 @@ The value of the predicate is defined as follows:\medskip
 \end{itemize}
 \medskip
 
-\noindent The function $f_\mathsf{inc}(k,v,\pi)\in\{0,1\}$ is evaluated via direct check $R[k]\stackrel{\mbox{?}}{=} v$ by $\unisrv$ and via the verification function $\mathcal{V}(k,v,\pi)$ by users.
+\noindent The inclusion proof verification function $f_\mathsf{inc}(k,v,\pi)\in\{0,1\}$ is evaluated via direct check $R[k]\stackrel{\mbox{?}}{=} v$ by $\unisrv$ and via the verification function $\mathcal{V}(k,v,\pi)$ by users.
 
 In general, if $\mathsf{time}(\pi) \neq \tau$ then it is possible that users and $\unisrv$ (at $\tau$) evaluate $f_\mathsf{inc}(k,v,\pi)$ differently. However, it turns out that in the case of the swap protocol, this difference does not play any role.
 %In a normal scenario, the swap predicate (with given arguments) is evaluated first at the $\unisrv$ side when the swap state is spent.
@@ -797,12 +798,12 @@ and $\univer(H(S'_\mathsf{prep}),v'_\mathsf{swap},\pi)=1$, we conclude that $(T'
 
 \noindent If the signature scheme is existentially unforgeable and the private key of $\pubkey'$ is not compromised, then practically the conclusion of Lemma~\ref{le:atomic-success} means that the owner of the token committed properly.
 
-The conditions $\mathcal{A}\equiv R[H(S'_\mathsf{swap})]=v'_\mathsf{swap}$
-and $\mathcal{B}\equiv R[H(S'_\mathsf{swap})]\neq v'_\mathsf{swap}\wedge \tau_\mathsf{max}<\tau$ clearly cannot be both true at the same time. Moreover, if $\mathcal{B}$ holds at $\tau$, then $\mathcal{A}$ can never hold, because the proof of Lemma~\ref{le:atomic-success} suggests that if $\mathcal{A}$ is true at any time, then it must be true
+The conditions $\mathcal{A}\equiv R[H(S'_\mathsf{prep})]=v'_\mathsf{swap}$
+and $\mathcal{B}\equiv R[H(S'_\mathsf{prep})]\neq v'_\mathsf{swap}\wedge \tau_\mathsf{max}<\tau$ clearly cannot be both true at the same time. Moreover, if $\mathcal{B}$ holds at $\tau$, then $\mathcal{A}$ can never hold, because the proof of Lemma~\ref{le:atomic-success} suggests that if $\mathcal{A}$ is true at any time, then it must be true
 also at some $\tau'\le \tau_\mathsf{max}$, but then, due to the append-only property, $\mathcal{A}$ must hold also at $\tau$.
 
-Also, at any time $\tau>\tau_\mathsf{max}$, either $\mathcal{A}$ or $\mathcal{B}$ must be true, because always, either $R[H(S'_\mathsf{swap})]=v'_\mathsf{swap}$
-or $R[H(S'_\mathsf{swap})]\neq v'_\mathsf{swap}$. Therefore, the swap predicate $\nu_\mathsf{swap}$ correctly implements the requirements of the swap protocol between $A$ and $B$:
+Also, at any time $\tau>\tau_\mathsf{max}$, either $\mathcal{A}$ or $\mathcal{B}$ must be true, because always, either $R[H(S'_\mathsf{prep})]=v'_\mathsf{swap}$
+or $R[H(S'_\mathsf{prep})]\neq v'_\mathsf{swap}$. Therefore, the swap predicate $\nu_\mathsf{swap}$ correctly implements the requirements of the swap protocol between $A$ and $B$:
 \begin{itemize}
 \item[1.] If $A$ and $B$ follow the protocol, then the swap happens
 \item[2.] If $A$ or $B$ (or both) deviate from the protocol, then $A$ and $B$ will get their tokens back
@@ -823,7 +824,7 @@ In this subsection, we describe the message flow and computations during the swa
     \item $\unisrv$ computes: $\tau^A_\mathsf{prep}\gets \tau$
     \item $\unisrv$ computes: $k^A_\mathsf{sig}\gets H(\nu_\mathsf{sig}(\pubkey_A;\cdot),h^0_A)$
     \item $\unisrv$ checks: $R[k^A_\mathsf{sig}]=\bot$
-    \item $\unisrv$ checks: $\nu_\mathsf{sig}(\pubkey_A;\tau^A_\mathsf{prep},H(h_A,v^A_\mathsf{prep}),u^A_\mathsf{prep},)=1$
+    \item $\unisrv$ checks: $\nu_\mathsf{sig}(\pubkey_A;\tau^A_\mathsf{prep},H(h^0_A,v^A_\mathsf{prep}),u^A_\mathsf{prep})=1$
     \item $\unisrv$ obtains: $\pi^A_\mathsf{prep}$ for $Q^A_\mathsf{prep}$. Note that $\mathsf{time}(\pi^A_\mathsf{prep})=\tau^A_\mathsf{prep}$
     \item $\unisrv$ sets: $R[k^A_\mathsf{sig}]\gets (v^A_\mathsf{prep},u^A_\mathsf{prep})$
     \item $\unisrv$ sends $A$: $\pi^A_\mathsf{prep}$
@@ -894,7 +895,7 @@ $A$ is ready for unsuccessful finalization (Lemma~\ref{le:atomic-rollback}).
 
 \noindent\textbf{Successful finalization of $A$}: Party $A$ now controls $\mathsf{Tok}_B$.
 The last certified transaction in the ledger of $\mathsf{Tok}_A$ is
-$C^A_\mathsf{swap}=(T^A_\mathsf{swap},u^A_\mathsf{swap},v^A_\mathsf{swap},\pi^A_\mathsf{swap})$.
+$C^A_\mathsf{swap}=(T^A_\mathsf{swap},u^A_\mathsf{swap},v^A_\mathsf{swap},\pi^A_\mathsf{swap})$. The inclusion proof $\pi^A_\mathsf{swap}$ is the proof that $A$ have committed $\mathsf{Tok}_A$.
 To transfer $\mathsf{Tok}_B$ from
 $(\nu_\mathsf{swap}(\pubkey_B,h^1_B,\pubkey_A,h^1_A,\tau_\mathsf{max};\cdot),h^2_B)$
  to $(\nu^A_\mathsf{sig}(\pubkey_A;\cdot),h^3_A)$, the party $A$ runs the following protocol that involves communication with $\unisrv$:
@@ -914,7 +915,7 @@ $(\nu_\mathsf{swap}(\pubkey_B,h^1_B,\pubkey_A,h^1_A,\tau_\mathsf{max};\cdot),h^2
     \item $\unisrv$ sends $A$: $\pi^A_\mathsf{fin}$
     \item $A$ computes : $C^A_\mathsf{fin}\gets (T^A_\mathsf{fin},u^A_\mathsf{fin},v^A_\mathsf{fin},\pi^A_\mathsf{fin})$ and adds $C^A_\mathsf{fin}$ as a certified transaction to the ledger of $\mathsf{Tok}_B$.
 \end{enumerate}
-$\mathsf{Tok}_B$ is now in the state $(\nu_\mathsf{sig}(\pubkey_A;\cdot),h^3_A)$, where $h^3_A=H(h^2_B,0^\ell)$, which means that $A$ has now full control over $\mathsf{Tok}_B$.
+$\mathsf{Tok}_B$ is now in the state $(\nu_\mathsf{sig}(\pubkey_A;\cdot),h^3_B)$, where $h^3_B=H(h^2_B,0^\ell)$, which means that $A$ has now full control over $\mathsf{Tok}_B$.
 \medskip
 
 \noindent\textbf{Unsuccessful finalization of $A$}: Party $A$ now controls $\mathsf{Tok}_A$.
@@ -1021,16 +1022,16 @@ Nolan, T.: Atomic swaps using cut and choose. In Bitcoinwiki (2018)\\
                     $T = (\sthash, D)$         \\
                     $(\txhash, d) \gets \commit(H(D))$ \\
                     $h_T = H(\sthash, \txhash)$ \\
-                    $\sigma$ such that $\predi(\systime_\mathsf{exp}, h_T, \sigma) = 1$
+                    $u$ such that $\predi(\systime_\mathsf{exp}, h_T, u) = 1$
                 }
                 }{S}{}
             \end{call}
 
             % Sender requests certification from Unicity Service
-            \begin{messcall}{S}{$Q = (\predi, \sthash, \txhash, \sigma)$}{US}
+            \begin{messcall}{S}{$Q = (\predi, \sthash, \txhash, u)$}{US}
                 \postlevel
                 \begin{call}{US}{\shortstack[l]{
-                    $\predi(\systime, h_T, \sigma) \stackrel{?}{=} 1$ \\
+                    $\predi(\systime, h_T, u) \stackrel{?}{=} 1$ \\
                     $R[H(\predi, \sthash)] \stackrel{?}{=} \bot$ \\
                     $R[H(\predi, \sthash)] \gets \txhash$
                     }}{US}{}
@@ -1041,7 +1042,7 @@ Nolan, T.: Atomic swaps using cut and choose. In Bitcoinwiki (2018)\\
             \end{messcall}
 
             % Sender sends certified transaction to recipient
-            \begin{messcall}{S}{$\mathcal{L} \cup (T, \sigma, \txhash, d, \pinc)$}{R}
+            \begin{messcall}{S}{$\mathcal{L} \cup (T, u, \txhash, d, \pinc)$}{R}
                 \postlevel
                 \postlevel
                 \postlevel
@@ -1050,7 +1051,7 @@ Nolan, T.: Atomic swaps using cut and choose. In Bitcoinwiki (2018)\\
                     $T.\sthash \stackrel{?}{=} H(h^\textsf{prev}_\mathsf{st},x_\textsf{prev})$ \\
                     $\open(\txhash, d) \stackrel{?}{=} H(T.D)$ \\
                     $\systime \gets \exttime(\pinc)$ \\
-                    $\predi(\systime, H(\sthash, \txhash), \sigma) \stackrel{?}{=} 1$ \\
+                    $\predi(\systime, H(\sthash, \txhash), u) \stackrel{?}{=} 1$ \\
                     $\univer(H(\predi, T.\sthash), \txhash, \pinc) \stackrel{?}{=} 1$ \\
                     Accept transaction if all checks pass
                     }}{R}{}
