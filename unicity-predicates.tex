@@ -940,6 +940,210 @@ to the state $(\nu^A_\mathsf{sig}(\pubkey_A;\cdot),h^3_A)$, the party $A$ runs t
 \end{enumerate}
 $\mathsf{Tok}_A$ is now in the state $(\nu_\mathsf{sig}(\pubkey_A;\cdot),h^3_A)$, where $h^3_A=H(h^2_A,0^\ell)$, which means that $A$ has now full control over $\mathsf{Tok}_A$.
 
+
+\subsection{Eliminating the Prepare Phase}
+
+The atomic swap protocol described in the previous sections requires three transactions per token: preparation, commitment, and finalization. In this section, we present a reduced protocol with two transactions per token. This comes at the cost of guaranteed safety---a party who executes the swap transaction after the agreed deadline may lose their funds.
+
+\subsubsection{Motivation}
+
+The preparation phase in the original protocol serves the following purposes:
+\begin{enumerate}
+\item It allows parties to verify that each other's tokens are ready for the swap by exchanging and inspecting token ledgers.
+\item It proves that a party is in actual control of the token and the token is not spent by creating a new certified state.
+\item It enforces the time constraint $\tau \le \tau_\mathsf{max}$ on swap commitments through the structure of $\nu_\mathsf{prep}$, preventing a party from entering the swap state after the timeout.
+\item It ensures deterministic computation of the expected swap value $v_\mathsf{swap}$ by fixing $x = 0^\ell$ and $\auxd = \bot$ in swap transactions.
+\end{enumerate}
+We observe that purpose (4) can be achieved directly within a redesigned swap predicate, and purposes (1) and (2) can be handled through direct, signed communication before any transactions are made. Purpose (3) is partially addressed by the swap predicate structure, but with an important caveat: the reduced protocol does not prevent late locking, which can lead to permanent fund loss if a party locks after $\tau_\mathsf{max}$ (see Security Analysis). This leads to a simplified two-transaction protocol that trades some safety guarantees for efficiency.
+
+\subsubsection{Direct Swap Predicate}
+
+We define the \emph{direct swap predicate} $\nu_\mathsf{dswap}(\pubkey,h,\pubkey',h',\tau_\mathsf{max};\cdot)$ that enables atomic swaps directly from owner signature-controlled states. The predicate has parameters:
+\begin{itemize}
+\item $\pubkey$: the public key of the current token owner
+\item $h$: the current state hash before the swap transaction
+\item $\pubkey'$: the public key of the counterparty
+\item $h'$: the state hash of the counterparty's token before their swap transaction
+\item $\tau_\mathsf{max}$: the timeout for the swap
+\end{itemize}
+\medskip
+
+\noindent\textbf{Name-specific arguments}: $u = (v, \pi, \sigma)$, where $v$ is a storage value from $R$ in $\unisrv$, $\pi$ is an inclusion proof, and $\sigma$ is a digital signature.\medskip
+
+\noindent\textbf{Definition}: $\nu_\mathsf{dswap}(\pubkey,h,\pubkey',h',\tau_\mathsf{max};\tau,m,v,\pi,\sigma) = 1$ iff:
+\begin{enumerate}
+\item $f_\mathsf{inc}(k', v, \pi) = 1$, where $k' = H(\nu_\mathsf{sig}(\pubkey';\cdot), h')$
+\item For $v'_\mathsf{dswap} = H(\nu_\mathsf{dswap}(\pubkey',h',\pubkey,h,\tau_\mathsf{max};\cdot), 0^\ell, \bot)$, either (a) or (b):
+\begin{itemize}
+\item[(a)] $\sigver(\pubkey', m, \sigma) = 1 \;\wedge\; v = v'_\mathsf{dswap}$
+\item[(b)] $\sigver(\pubkey, m, \sigma) = 1 \;\wedge\; v \neq v'_\mathsf{dswap} \;\wedge\; \tau > \tau_\mathsf{max}$
+\end{itemize}
+\end{enumerate}
+\medskip
+
+\noindent The predicate checks the status of the counterparty's original state $(\nu_\mathsf{sig}(\pubkey';\cdot), h')$ via the inclusion proof. Condition (a) corresponds to successful swap execution: the counterparty has committed (evidenced by $v = v'_\mathsf{dswap}$) and provides a signature to claim the token. Condition (b) corresponds to rollback: the original owner reclaims the token after the timeout, provided the counterparty did not commit correctly.
+
+\subsubsection{Protocol Description}
+
+Assume that $A$ owns $\mathsf{Tok}_A$ in state $S^A_0 = (\nu_\mathsf{sig}(\pubkey_A;\cdot), h^0_A)$ and $B$ owns $\mathsf{Tok}_B$ in state $S^B_0 = (\nu_\mathsf{sig}(\pubkey_B;\cdot), h^0_B)$. The reduced atomic swap protocol proceeds as follows:\medskip
+
+\noindent\textbf{Phase 0 -- Off-band pre-agreement}: Before any transactions with tokens, parties $A$ and $B$ communicate directly to:
+\begin{enumerate}
+\item Exchange the tokens to ensure the availability of tokens to other party
+\item Obtan current state information from exchanged tokens: $(\pubkey_A, h^0_A)$ and $(\pubkey_B, h^0_B)$
+\item Establish that the state is not spent by obtaining a non-inclusion proof from $R$
+\item Agree on the shared timeout value $\tau_\mathsf{max}$
+\item Prove the access to transaction signing key by e.g. signing the messages above
+\end{enumerate}
+After this phase, both parties have complete knowledge of all parameters needed for the swap predicates.\medskip
+
+\noindent\textbf{Phase 1 -- Lock}: Both parties independently transfer their tokens to the direct swap states. Party $A$ transfers $\mathsf{Tok}_A$ from $S^A_0$ to:
+\[
+S^A_\mathsf{dswap} = (\nu_\mathsf{dswap}(\pubkey_A, h^0_A, \pubkey_B, h^0_B, \tau_\mathsf{max};\cdot), h^1_A)
+\]
+where $h^1_A = H(h^0_A, 0^\ell)$. Symmetrically, $B$ transfers $\mathsf{Tok}_B$ from $S^B_0$ to:
+\[
+S^B_\mathsf{dswap} = (\nu_\mathsf{dswap}(\pubkey_B, h^0_B, \pubkey_A, h^0_A, \tau_\mathsf{max};\cdot), h^1_B)
+\]
+where $h^1_B = H(h^0_B, 0^\ell)$. These transactions must be completed before $\tau_\mathsf{max}$.
+
+Note that parties do not need to exchange transaction data after locking. Since all predicate parameters are established in Phase~0 and the transaction structure uses fixed values $x = 0^\ell$ and $\auxd = \bot$, each party can reconstruct the counterparty's certified transaction from a status query to $\unisrv$, which returns both the stored value and the unlock arguments.\medskip
+
+\noindent\textbf{Phase 2 -- Finalize}: After the lock phase, each party queries $\unisrv$ to determine the counterparty's action:
+\begin{itemize}
+\item If $R[H(\nu_\mathsf{sig}(\pubkey';\cdot), h'_0)] = v'_\mathsf{dswap}$, then the counterparty has committed. The party can claim the counterparty's token by providing the inclusion proof and their signature.
+\item If $R[H(\nu_\mathsf{sig}(\pubkey';\cdot), h'_0)] \neq v'_\mathsf{dswap}$ and $\tau > \tau_\mathsf{max}$, then the counterparty did not commit in time. The party can reclaim their own token by providing the inclusion proof showing non-commitment and their signature.
+\end{itemize}
+
+\subsubsection{Detailed Message Flow}
+
+We describe the message flow from $A$'s perspective.\medskip
+
+\noindent\textbf{Lock of $A$}: To transfer $\mathsf{Tok}_A$ to the direct swap state, party $A$ executes:
+\begin{enumerate}
+\item $A$ computes: $D^A_\mathsf{dswap} \gets (\nu_\mathsf{dswap}(\pubkey_A, h^0_A, \pubkey_B, h^0_B, \tau_\mathsf{max};\cdot), 0^\ell, \bot)$
+\item $A$ computes: $v^A_\mathsf{dswap} \gets H(D^A_\mathsf{dswap})$
+\item $A$ computes: $T^A_\mathsf{dswap} \gets (h^0_A, D^A_\mathsf{dswap})$
+\item $A$ computes: $u^A_\mathsf{lock} \gets \sig(\prikey_A, H(h^0_A, v^A_\mathsf{dswap}))$
+\item $A$ sends $\unisrv$: $Q^A_\mathsf{lock} = (\nu_\mathsf{sig}(\pubkey_A;\cdot), h^0_A, v^A_\mathsf{dswap}, u^A_\mathsf{lock})$
+\item $\unisrv$ verifies and processes the request, returning $\pi^A_\mathsf{lock}$
+\item $A$ constructs: $C^A_\mathsf{dswap} = (T^A_\mathsf{dswap}, u^A_\mathsf{lock}, v^A_\mathsf{dswap}, \pi^A_\mathsf{lock})$
+\end{enumerate}
+After this, $\mathsf{Tok}_A$ is in state $S^A_\mathsf{dswap}$ with $h^1_A = H(h^0_A, 0^\ell)$.\medskip
+
+\noindent\textbf{Successful finalization of $A$}: If $B$ has also locked, $A$ claims $\mathsf{Tok}_B$:
+\begin{enumerate}
+\item $A$ queries $\unisrv$ for $k^B_\mathsf{sig} = H(\nu_\mathsf{sig}(\pubkey_B;\cdot), h^0_B)$
+\item $A$ receives $(v, \pi^B_\mathsf{prf})$ where $v = R[k^B_\mathsf{sig}]$
+\item $A$ verifies: $v = v^B_\mathsf{dswap} = H(\nu_\mathsf{dswap}(\pubkey_B, h^0_B, \pubkey_A, h^0_A, \tau_\mathsf{max};\cdot), 0^\ell, \bot)$
+\item $A$ computes: $D^A_\mathsf{fin} \gets (\nu_\mathsf{sig}(\pubkey_A;\cdot), 0^\ell, \bot)$
+\item $A$ computes: $v^A_\mathsf{fin} \gets H(D^A_\mathsf{fin})$
+\item $A$ computes: $\sigma^A_\mathsf{fin} \gets \sig(\prikey_A, H(h^1_B, v^A_\mathsf{fin}))$
+\item $A$ computes: $u^A_\mathsf{fin} \gets (v, \pi^B_\mathsf{prf}, \sigma^A_\mathsf{fin})$
+\item $A$ sends $\unisrv$: $Q^A_\mathsf{fin} = (\nu_\mathsf{dswap}(\pubkey_B, h^0_B, \pubkey_A, h^0_A, \tau_\mathsf{max};\cdot), h^1_B, v^A_\mathsf{fin}, u^A_\mathsf{fin})$
+\item $\unisrv$ verifies condition (a) of $\nu_\mathsf{dswap}$ and returns $\pi^A_\mathsf{fin}$
+\end{enumerate}
+$A$ now controls $\mathsf{Tok}_B$ in state $(\nu_\mathsf{sig}(\pubkey_A;\cdot), H(h^1_B, 0^\ell))$.\medskip
+
+\noindent\textbf{Rollback of $A$}: If $B$ did not lock before $\tau_\mathsf{max}$, $A$ reclaims $\mathsf{Tok}_A$:
+\begin{enumerate}
+\item $A$ waits until $\tau > \tau_\mathsf{max}$
+\item $A$ queries $\unisrv$ for $k^B_\mathsf{sig} = H(\nu_\mathsf{sig}(\pubkey_B;\cdot), h^0_B)$
+\item $A$ receives $(v, \pi^B_\mathsf{prf})$ where $v \neq v^B_\mathsf{dswap}$ (either $v = \bot$ or $v$ corresponds to a different transaction)
+\item $A$ computes: $D^A_\mathsf{rb} \gets (\nu_\mathsf{sig}(\pubkey_A;\cdot), 0^\ell, \bot)$
+\item $A$ computes: $v^A_\mathsf{rb} \gets H(D^A_\mathsf{rb})$
+\item $A$ computes: $\sigma^A_\mathsf{rb} \gets \sig(\prikey_A, H(h^1_A, v^A_\mathsf{rb}))$
+\item $A$ computes: $u^A_\mathsf{rb} \gets (v, \pi^B_\mathsf{prf}, \sigma^A_\mathsf{rb})$
+\item $A$ sends $\unisrv$: $Q^A_\mathsf{rb} = (\nu_\mathsf{dswap}(\pubkey_A, h^0_A, \pubkey_B, h^0_B, \tau_\mathsf{max};\cdot), h^1_A, v^A_\mathsf{rb}, u^A_\mathsf{rb})$
+\item $\unisrv$ verifies $\tau > \tau_\mathsf{max}$ and condition (b) of $\nu_\mathsf{dswap}$, returns $\pi^A_\mathsf{rb}$
+\end{enumerate}
+$A$ now controls $\mathsf{Tok}_A$ in state $(\nu_\mathsf{sig}(\pubkey_A;\cdot), H(h^1_A, 0^\ell))$.
+
+\subsubsection{Security Analysis}
+
+The security of the reduced protocol relies on the same cryptographic assumptions as the original protocol: collision resistance of $H$ and existential unforgeability of the signature scheme. However, the reduced protocol has no safety guarantee regarding late locking.
+
+\begin{lemma}\label{le:dswap-rollback}
+If $R[H(\nu_\mathsf{sig}(\pubkey';\cdot), h')] \neq v'_\mathsf{dswap}$ at $\tau > \tau_\mathsf{max}$, where \\
+$v'_\mathsf{dswap} = H(\nu_\mathsf{dswap}(\pubkey', h', \pubkey, h, \tau_\mathsf{max};\cdot), 0^\ell, \bot)$, then the counterparty did not commit to the swap with the agreed parameters.
+\end{lemma}
+\begin{proof}
+Assume the counterparty committed properly. Then a transaction $T' = (h', D')$ with $D' = (\nu_\mathsf{dswap}(\pubkey', h', \pubkey, h, \tau_\mathsf{max};\cdot), 0^\ell, \bot)$ was certified at state $(\nu_\mathsf{sig}(\pubkey';\cdot), h')$. This requires a successful request to $\unisrv$ that sets $R[H(\nu_\mathsf{sig}(\pubkey';\cdot), h')] \gets v'_\mathsf{dswap}$. Since $R$ is append-only, this value persists, contradicting the assumption.
+\end{proof}
+
+\begin{lemma}\label{le:dswap-success}
+If $R[H(\nu_\mathsf{sig}(\pubkey';\cdot), h')] = v'_\mathsf{dswap}$ at any point, where \\
+$v'_\mathsf{dswap} = H(\nu_\mathsf{dswap}(\pubkey', h', \pubkey, h, \tau_\mathsf{max};\cdot), 0^\ell, \bot)$, and $H$ is collision-resistant, then the counterparty committed to the swap with the agreed parameters.
+\end{lemma}
+\begin{proof}
+If $R[H(\nu_\mathsf{sig}(\pubkey';\cdot), h')] = v'_\mathsf{dswap}$, then a successful request $Q = (\nu, \bar{h}, v'_\mathsf{dswap}, u)$ was made such that $H(\nu, \bar{h}) = H(\nu_\mathsf{sig}(\pubkey';\cdot), h')$. Without $H$-collisions, $\nu = \nu_\mathsf{sig}(\pubkey';\cdot)$ and $\bar{h} = h'$. The request was successful, so $\nu_\mathsf{sig}(\pubkey'; \tau, H(h', v'_\mathsf{dswap}), u) = 1$, meaning a valid signature from the owner of $\prikey'$ was provided. Since $v'_\mathsf{dswap} = H(D')$ for $D' = (\nu_\mathsf{dswap}(\pubkey', h', \pubkey, h, \tau_\mathsf{max};\cdot), 0^\ell, \bot)$, the counterparty committed to exactly this swap configuration.
+\end{proof}
+
+\noindent These lemmas establish that the direct swap predicate correctly distinguishes between committed and non-committed counterparties, ensuring atomic execution \emph{provided both parties lock before $\tau_\mathsf{max}$}.
+
+\begin{lemma}[Late locking hazard]\label{le:dswap-late}
+If party $A$ locks at $\tau_A > \tau_\mathsf{max}$ and party $B$ locked at $\tau_B < \tau_\mathsf{max}$ and subsequently rolled back before $A$'s lock, then $A$'s token is permanently unrecoverable.
+\end{lemma}
+\begin{proof}
+Consider the following sequence of events:
+\begin{enumerate}
+\item $B$ locks at $\tau_B < \tau_\mathsf{max}$: $R[k^B_\mathsf{sig}] \gets v^B_\mathsf{dswap}$
+\item At $\tau' > \tau_\mathsf{max}$, $B$ observes $R[k^A_\mathsf{sig}] \neq v^A_\mathsf{dswap}$ (since $A$ has not locked)
+\item $B$ rolls back by satisfying condition (b) of $\nu_\mathsf{dswap}$, spending state $S^B_\mathsf{dswap}$
+\item $A$ locks at $\tau_A > \tau'$: $R[k^A_\mathsf{sig}] \gets v^A_\mathsf{dswap}$
+\end{enumerate}
+Now $A$ attempts recovery:
+\begin{itemize}
+\item To claim $\mathsf{Tok}_B$ via condition (a): $A$ needs to spend $S^B_\mathsf{dswap}$, but this state was already spent by $B$'s rollback. The request fails.
+\item To rollback $\mathsf{Tok}_A$ via condition (b): $A$ needs $R[k^B_\mathsf{sig}] \neq v^B_\mathsf{dswap}$, but $R[k^B_\mathsf{sig}] = v^B_\mathsf{dswap}$ persists (append-only). Condition (b) is not satisfiable.
+\end{itemize}
+Therefore, $A$'s token remains in state $S^A_\mathsf{dswap}$ with no valid transition, and is permanently locked.
+\end{proof}
+
+\noindent This safety hazard does not exist in the original protocol because $\nu_\mathsf{prep}$ enforces $\tau \le \tau_\mathsf{max}$ for swap transactions---a party simply cannot enter the swap state after the timeout.
+
+\subsubsection{Trade-off Analysis}
+
+The reduced protocol offers efficiency gains but introduces different requirements and risks compared to the original protocol.\medskip
+
+\noindent\textbf{Efficiency gains}:
+\begin{itemize}
+\item \emph{Reduced transaction count}: Two transactions per token instead of three, yielding four total transactions instead of six.
+\item \emph{Simpler state machine}: Three states (Local $\to$ Locked $\to$ Finalized/Rolled Back) instead of five.
+\item \emph{Single predicate}: Only $\nu_\mathsf{dswap}$ is needed instead of both $\nu_\mathsf{prep}$ and $\nu_\mathsf{swap}$.
+\item \emph{Lower latency}: Fewer round trips with $\unisrv$ in the happy path.
+\end{itemize}
+\medskip
+
+\noindent\textbf{Off-band pre-agreement requirements}: The preparation phase in the original protocol serves as a token committing point where parties can verify readiness. In the reduced protocol, this verification must happen off-band:
+\begin{itemize}
+\item \emph{Parameter agreement}: Parties must agree on $(\pubkey_A, h^0_A, \pubkey_B, h^0_B, \tau_\mathsf{max})$ before any token action. If parameters are mismatched, tokens may be locked with incompatible predicates (but reclaimed after timeout).
+\item \emph{State verification}: Parties should verify each other's current token states and token availability (via token exchange) before locking. Without this, a party might lock against a non-existent or already-spent state.
+\end{itemize}
+\medskip
+
+\noindent\textbf{Security comparison}: The reduced protocol provides weaker safety guarantees than the original:
+\begin{itemize}
+\item \emph{Atomicity (conditional)}: The swap either completes for both parties or neither, provided both parties either lock before $\tau_\mathsf{max}$, or do not lock at all.
+\item \emph{No counterparty risk (conditional)}: After timeout, a party can reclaim their token if the counterparty did not commit, provided the party locked before $\tau_\mathsf{max}$ (or just does nothing after $\tau_\mathsf{max}$).
+\item \emph{Timeout enforcement}: The constraint $\tau > \tau_\mathsf{max}$ in condition (b) ensures rollback is only possible after the agreed deadline.
+\end{itemize}
+
+\noindent The original protocol enforces unconditional safety through $\nu_\mathsf{prep}$, which rejects swap transactions after $\tau_\mathsf{max}$. The reduced protocol places this responsibility on the user: a party must ensure the liveliness and lock before the timeout, or detect the passing of timeout and do nothing, or risk permanent fund loss.\medskip
+
+\noindent\emph{Griefing scenarios}:
+\begin{enumerate}
+\item \emph{No actual control over the token/state}: Party $B$ offers a swap with a token that they do not control, or a previous state of a token which is already spent. This must be mitigated by off-band verification of token ownership and obtaining a non-inclusion proof from $R$.
+\item \emph{Non-participation after agreement}: Party $B$ completes the off-band agreement but never executes the lock transaction. If $A$ has already locked, $A$'s token remains locked until $\tau_\mathsf{max}$, even though $B$ has no funds at risk.
+\item \emph{Parameter manipulation}: Party $B$ agrees to timeout $\tau_\mathsf{max}$ off-band but locks with a different value $\tau'_\mathsf{max} \ll \tau_\mathsf{max}$. Since the predicates encode different parameters, $v^B_\mathsf{dswap} \neq v'^B_\mathsf{dswap}$ from $A$'s perspective. Neither party can claim the other's token (atomicity preserved), but $B$ can rollback at $\tau'_\mathsf{max}$ while $A$ must wait until $\tau_\mathsf{max}$.
+\item \emph{Late locking}: Party $B$ deliberately delays locking until just before $\tau_\mathsf{max}$. Party $A$, having locked early, has funds locked for nearly the entire timeout period even in the successful case.
+\end{enumerate}
+\medskip
+
+\noindent The original protocol addresses scenarios (1) and (3) through the preparation phase. (2), (4) are common to both protocols and specifically (2) levels the susceptibility to griefing attacks.\medskip
+
+\noindent\textbf{Real-world use}: We note that real-world protocols have transaction timeout field which effectively addresses the issue of late locking; although enforced at another system layer.
+
 \subsection{Atomic Swap with Hashed Timelock and Discussion}
 Assume that $A$ owns $\mathsf{Tok}_A$
 and $B$ owns $\mathsf{Tok}_B$.
