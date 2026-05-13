@@ -66,9 +66,8 @@
 \maketitle
 
 \begin{abstract}
-We discuss how to extend the Unicity infrastructure for using predicates as abstract ownership conditions of tokens instead of just having single public keys as the owners. We prove that adding predicates does not affect the security features of the Unicity infrastructure. We also show how to implement trustless atomic swaps by using predicates.
+We generalize Unicity token ownership to programmable spending conditions called \emph{predicates}, enabling smart-contract like functionality executed off-chain directly by relying parties rather than by consensus participants. We prove that the security properties of the Unicity execution layer are preserved under reduction to predicate family unforgeability. To demonstrate the utility of the model, we show how to implement trustless atomic swaps by using predicates.
 \end{abstract}
-
 
 \section{Introduction}
 
@@ -1174,7 +1173,7 @@ The conclusion is that the symmetric atomic swap protocol is better suited for t
 \begin{thebibliography}{99}
 \bibitem{BTLR25}
 Buldas, A., Truu, A., Laanoja, R., Rogojin, V.:
-The Unicity Execution Layer. A manuscript (2025)
+The Unicity Execution Layer. A manuscript (2025) {\url{}}
 
 \bibitem{Herl18}
 Herlihy, M.:

@@ -3,4 +3,4 @@
 [Unicity: Predicates and Atomic Swaps (paper, PDF)](https://github.com/unicitynetwork/unicity-predicates-tex/releases/download/latest/unicity-predicates.pdf)
 
 ## Abstract
->    We discuss how to extend the Unicity Infrastructure for using _predicates_ as abstract ownership conditions of tokens instead of just having single public keys as the owners. We prove that adding predicates does not affect the security features of the Unicity infrastructure. We also show how to implement trustless atomic swaps by using predicates.
+>    We generalize Unicity token ownership to programmable spending conditions called \emph{predicates}, enabling smart-contract like functionality executed off-chain directly by relying parties rather than by consensus participants. We prove that the security properties of the Unicity execution layer are preserved under reduction to predicate family unforgeability. To demonstrate the utility of the model, we show how to implement trustless atomic swaps by using predicates.
